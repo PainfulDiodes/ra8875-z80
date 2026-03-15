@@ -35,6 +35,16 @@ test_ra8875:
     call ra8875_initialise
     jp nz,_test_error
 
+    ; short settling delay - 256x256 nops
+    ld c,0
+_delay_outer:
+    ld b,0
+_delay_inner:
+    nop
+    djnz _delay_inner
+    dec c
+    jr nz,_delay_outer
+
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
 
