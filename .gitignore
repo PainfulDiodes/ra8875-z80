@@ -1,3 +1,4 @@
 *.o
 *.lis
 *.map
+*.bin
