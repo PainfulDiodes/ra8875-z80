@@ -5,7 +5,6 @@
     PUBLIC ra8875_console_puts
     PUBLIC ra8875_console_init
 
-    EXTERN usb_putchar
     EXTERN ra8875_putchar
     EXTERN ra8875_cursor_x
     EXTERN ra8875_cursor_y
@@ -81,9 +80,6 @@ _putchar_newline:
     ld (RA8875_CURSOR_COL),a
     call _advance_line
     jr _putchar_done
-_putchar_usb:
-    ld a,b
-    call usb_putchar
 _putchar_done:
     ld a,b
     pop hl
