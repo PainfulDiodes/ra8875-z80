@@ -21,7 +21,7 @@
     PUBLIC ra8875_write
     PUBLIC ra8875_read
 
-INCLUDE "asm/system.inc"
+INCLUDE "target/system.inc"
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

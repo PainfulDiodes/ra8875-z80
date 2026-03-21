@@ -13,7 +13,7 @@
 ; Error path: if ra8875_initialise returns NZ the program halts at
 ; _test_error for inspection.
 
-    INCLUDE "asm/system.inc"
+    INCLUDE "target/system.inc"
     INCLUDE "asm/ra8875.inc"
 
     EXTERN ra8875_initialise

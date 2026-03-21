@@ -21,7 +21,7 @@ Supports two hardware transports:
 | `asm/drivers/transport_spi.asm` | Hardware SPI transport |
 | `asm/drivers/transport_gpio.asm` | GPIO bit-bang SPI transport |
 | `asm/console_beandeck.asm` | Reference console implementation (may diverge from Marvin) |
-| `asm/system.inc` | Stub defining required symbols for standalone builds |
+| `target/system.inc` | Stub defining required symbols for standalone builds |
 
 ## Integration
 
@@ -33,7 +33,7 @@ z88dk-z80asm -I"$HOST_DIR" -I"$RA8875_DIR" ...
 ```
 
 The host's `system.inc` provides the RAM addresses and port constants.
-The stub `asm/system.inc` in this repo is used only for standalone builds.
+The stub `target/system.inc` in this repo is used only for standalone builds.
 
 ## Building standalone
 

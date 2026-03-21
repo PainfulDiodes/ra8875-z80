@@ -1,4 +1,4 @@
-    INCLUDE "asm/system.inc"
+    INCLUDE "target/system.inc"
     INCLUDE "asm/ra8875.inc"
 
     PUBLIC getchar
