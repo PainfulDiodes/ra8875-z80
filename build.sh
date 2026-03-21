@@ -39,7 +39,7 @@ z88dk-z80asm -b -l -m -I"$REPO_DIR" -DRAM_START="${RAM_START}" \
     "$REPO_DIR/asm/ra8875.asm" \
     "$REPO_DIR/asm/transport_spi.asm" \
     "$REPO_DIR/asm/console.asm" \
-    "$REPO_DIR/target/vars.asm"
+    "$REPO_DIR/target/environment.asm"
 
 z88dk-appmake +hex --org "${RAM_START}" \
     -b "$OUTDIR/main.bin" \
