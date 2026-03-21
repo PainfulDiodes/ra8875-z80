@@ -18,7 +18,7 @@
 
     EXTERN ra8875_initialise
     EXTERN ra8875_console_init
-    EXTERN puts
+    EXTERN ra8875_console_puts
 
 IFNDEF RAM_START
 RAM_START equ 0x8000
@@ -50,7 +50,7 @@ _delay_inner:
 
     ; print the test message
     ld hl,_msg
-    call puts
+    call ra8875_console_puts
 
 _test_loop:
     jr _test_loop           ; loop forever

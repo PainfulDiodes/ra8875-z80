@@ -1,8 +1,8 @@
     INCLUDE "target/system.inc"
     INCLUDE "asm/ra8875.inc"
 
-    PUBLIC putchar
-    PUBLIC puts
+    PUBLIC ra8875_console_putchar
+    PUBLIC ra8875_console_puts
     PUBLIC ra8875_console_init
 
     EXTERN usb_putchar
@@ -36,21 +36,10 @@ ra8875_console_init:
 
 
 ; send character in A to console
-putchar:
+ra8875_console_putchar:
     push bc
     push de
     push hl
-    ld b,a
-    ld hl,CONSOLE_STATUS
-    ld a,CONSOLE_STATUS_BEANBOARD
-    and (hl)
-    jr nz,_putchar_ra8875
-    ld a,CONSOLE_STATUS_USB
-    and (hl)
-    jr nz,_putchar_usb
-    jr _putchar_done
-_putchar_ra8875:
-    ld a,b
     cp 0x0f                     ; SI - cursor off?
     jr z,_putchar_cursor_off
     cp 0x0e                     ; SO - cursor on?
@@ -273,13 +262,13 @@ _draw_cursor_done:
 
 
 ; print a zero-terminated string pointed to by hl to the console
-puts:
+ra8875_console_puts:
     push hl
 _puts_loop:
     ld a,(hl)
     cp 0
     jr z,_puts_end
-    call putchar
+    call ra8875_console_putchar
     inc hl
     jp _puts_loop
 _puts_end:
