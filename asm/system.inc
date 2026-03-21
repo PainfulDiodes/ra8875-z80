@@ -26,4 +26,5 @@ GPIO_IN  equ 7
 
 ENDIF
 
-; TODO - rething RAM locations for this - because this is a RAM build, this could be done more simply through labels?
+; TODO - rethink RAM locations for this - because this is a RAM build, this could be done more simply through labels?
+; however, this is only an example - it will be swapped with a proper system.inc
