@@ -35,11 +35,11 @@ echo ""
 echo "Assembling test binary (RAM_START=${RAM_START})..."
 z88dk-z80asm -b -l -m -I"$REPO_DIR" -DRAM_START="${RAM_START}" \
     -o"$OUTDIR/test_ra8875.bin" \
-    "$REPO_DIR/asm/test/test_ra8875.asm" \
+    "$REPO_DIR/target/test_ra8875.asm" \
     "$REPO_DIR/asm/ra8875.asm" \
     "$REPO_DIR/asm/transport_spi.asm" \
     "$REPO_DIR/asm/console.asm" \
-    "$REPO_DIR/asm/test/stubs.asm"
+    "$REPO_DIR/target/stubs.asm"
 
 z88dk-appmake +hex --org "${RAM_START}" \
     -b "$OUTDIR/test_ra8875.bin" \
