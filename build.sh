@@ -34,16 +34,16 @@ RAM_START="${1:-0x8000}"
 echo ""
 echo "Assembling test binary (RAM_START=${RAM_START})..."
 z88dk-z80asm -b -l -m -I"$REPO_DIR" -DRAM_START="${RAM_START}" \
-    -o"$OUTDIR/test_ra8875.bin" \
-    "$REPO_DIR/target/test_ra8875.asm" \
+    -o"$OUTDIR/main.bin" \
+    "$REPO_DIR/target/main.asm" \
     "$REPO_DIR/asm/ra8875.asm" \
     "$REPO_DIR/asm/transport_spi.asm" \
     "$REPO_DIR/asm/console.asm" \
     "$REPO_DIR/target/stubs.asm"
 
 z88dk-appmake +hex --org "${RAM_START}" \
-    -b "$OUTDIR/test_ra8875.bin" \
-    -o "$OUTDIR/test_ra8875.ihx"
+    -b "$OUTDIR/main.bin" \
+    -o "$OUTDIR/main.ihx"
 
 echo ""
 echo "All modules assembled successfully."
