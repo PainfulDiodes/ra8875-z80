@@ -25,9 +25,9 @@ for module in ra8875 ra8875_spi ra8875_gpio; do
         -o"$OUTDIR/$module.o" "$REPO_DIR/asm/drivers/$module.asm"
 done
 
-echo "  asm/console_beandeck.asm (reference)"
+echo "  asm/console.asm (reference)"
 z88dk-z80asm -l -m -I"$REPO_DIR" \
-    -o"$OUTDIR/console_beandeck.o" "$REPO_DIR/asm/console_beandeck.asm"
+    -o"$OUTDIR/console.o" "$REPO_DIR/asm/console.asm"
 
 # RAM test binary - assembles all modules together and links to a flat binary.
 RAM_START="${1:-0x8000}"
@@ -38,7 +38,7 @@ z88dk-z80asm -b -l -m -I"$REPO_DIR" -DRAM_START="${RAM_START}" \
     "$REPO_DIR/asm/test/test_ra8875.asm" \
     "$REPO_DIR/asm/drivers/ra8875.asm" \
     "$REPO_DIR/asm/drivers/ra8875_spi.asm" \
-    "$REPO_DIR/asm/console_beandeck.asm" \
+    "$REPO_DIR/asm/console.asm" \
     "$REPO_DIR/asm/test/stubs.asm"
 
 z88dk-appmake +hex --org "${RAM_START}" \
