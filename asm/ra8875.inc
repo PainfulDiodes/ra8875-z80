@@ -3,7 +3,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; NOTE: this file only includes settings for an 800x480 display
-; Settings for other display resolutions may be added
+; Settings for other display resolutions could be added
 ; Typically a resolution-specific setting is provided with a further
 ; alias  which is what the library will use, e.g.
 ; RA8875_PCSR_800x480 defines the setting for 800x480 resolution
