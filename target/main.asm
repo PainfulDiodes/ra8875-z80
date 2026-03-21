@@ -27,9 +27,6 @@ ENDIF
     ORG RAM_START
 
 test_ra8875:
-    ; route console output to the RA8875
-    ld a,CONSOLE_STATUS_BEANBOARD
-    ld (CONSOLE_STATUS),a
 
     ; bring up the RA8875 hardware
     call ra8875_initialise

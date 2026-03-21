@@ -1,5 +1,4 @@
-    INCLUDE "target/system.inc"
-    INCLUDE "asm/ra8875.inc"
+    INCLUDE "ra8875.inc"
 
     PUBLIC ra8875_console_putchar
     PUBLIC ra8875_console_puts
@@ -10,6 +9,12 @@
     EXTERN ra8875_cursor_y
     EXTERN ra8875_write_reg
     EXTERN ra8875_read_reg
+
+    ; based on 0xe000 to not clash with MARVIN
+    RA8875_CURSOR_COL     equ 0xe001  ; 1-byte column (0..RA8875_COLS-1)
+    RA8875_CURSOR_ROW     equ 0xe002  ; 1-byte physical row (0..RA8875_ROWS-1)
+    RA8875_SCROLL_TOP     equ 0xe003  ; 1-byte physical row at top of display
+    RA8875_CURSOR_VISIBLE equ 0xe004  ; non-zero = cursor visible, zero = cursor hidden
 
 ; Initialise RA8875 console state.
 ; Hides hardware cursor, zeroes tracking variables, draws initial software cursor.

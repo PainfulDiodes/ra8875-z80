@@ -8,17 +8,6 @@ DEFINE _SYSTEM_INC
 
 ; RA8875 console state (RAM addresses - must be provided by the host project)
 
-; based on 0xe000 to not clash with MARVIN
-
-RA8875_CURSOR_COL     equ 0xe001  ; 1-byte column (0..RA8875_COLS-1)
-RA8875_CURSOR_ROW     equ 0xe002  ; 1-byte physical row (0..RA8875_ROWS-1)
-RA8875_SCROLL_TOP     equ 0xe003  ; 1-byte physical row at top of display
-RA8875_CURSOR_VISIBLE equ 0xe004  ; non-zero = cursor visible, zero = cursor hidden
-
-; Console status (used by console_beandeck.asm)
-CONSOLE_STATUS          equ 0xe000
-CONSOLE_STATUS_USB      equ 1
-CONSOLE_STATUS_BEANBOARD equ 2
 
 ; GPIO bit-bang SPI ports (used by transport_gpio.asm)
 GPIO_OUT equ 6
