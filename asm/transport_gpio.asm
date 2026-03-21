@@ -21,8 +21,8 @@
     PUBLIC ra8875_write
     PUBLIC ra8875_read
 
-    EXTERN GPIO_OUT
-    EXTERN GPIO_IN
+    EXTERN RA8875_GPIO_OUT
+    EXTERN RA8875_GPIO_IN
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -64,7 +64,7 @@ GPO_HIGH_STATE   equ 1 << RA8875_MOSI | 1 << RA8875_RESET
 ra8875_reset_assert:
     push af
     ld a,GPO_RESET_STATE
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     pop af
     ret
 
@@ -74,7 +74,7 @@ ra8875_reset_assert:
 ra8875_reset_deassert:
     push af
     ld a,GPO_INACTIVE_STATE
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     pop af
     ret
 
@@ -85,7 +85,7 @@ ra8875_reset_deassert:
 ra8875_cs_start:
     push af
     ld a,GPO_ACTIVE_STATE
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     pop af
     ret
 
@@ -95,7 +95,7 @@ ra8875_cs_start:
 ra8875_cs_end:
     push af
     ld a,GPO_INACTIVE_STATE
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     pop af
     ret
 
@@ -116,13 +116,13 @@ _ra8875_write_loop:
     jr nc,_ra8875_write_bit
     ld a,GPO_HIGH_STATE
 _ra8875_write_bit:
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     ; clock high
     or 1 << RA8875_SCK
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     ; clock low
     and ~(1 << RA8875_SCK)
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     ; restore A
     ld a,d
     djnz _ra8875_write_loop
@@ -145,12 +145,12 @@ _ra8875_read_loop:
     ld d,a
     ; Set initial low state
     ld a,GPO_LOW_STATE
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     ; Set clock high
     or 1 << RA8875_SCK
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     ; Read MISO bit
-    in a,(GPIO_IN)
+    in a,(RA8875_GPIO_IN)
     bit RA8875_MISO,a
     jr z,_ra8875_read_low
     ; MISO high - set LSB
@@ -164,7 +164,7 @@ _ra8875_read_bit_done:
     ; Set clock low
     ld d,a
     ld a,GPO_LOW_STATE
-    out (GPIO_OUT),a
+    out (RA8875_GPIO_OUT),a
     ; Restore received byte
     ld a,d
     djnz _ra8875_read_loop

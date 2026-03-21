@@ -22,11 +22,11 @@
     PUBLIC ra8875_read
 
 
-    EXTERN SPI_CTRL
-    EXTERN SPI_DATA
-    EXTERN SPI_IDLE
-    EXTERN SPI_RESET
-    EXTERN SPI_SELECT_0
+    EXTERN RA8875_SPI_CTRL
+    EXTERN RA8875_SPI_DATA
+    EXTERN RA8875_SPI_IDLE
+    EXTERN RA8875_SPI_RESET
+    EXTERN RA8875_SPI_SELECT_0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; transport interface
@@ -36,8 +36,8 @@
 ; Destroys: AF
 ra8875_reset_assert:
     push af
-    ld a,SPI_RESET
-    out (SPI_CTRL),a
+    ld a,RA8875_SPI_RESET
+    out (RA8875_SPI_CTRL),a
     pop af
     ret
 
@@ -46,8 +46,8 @@ ra8875_reset_assert:
 ; Destroys: AF
 ra8875_reset_deassert:
     push af
-    ld a,SPI_IDLE
-    out (SPI_CTRL),a
+    ld a,RA8875_SPI_IDLE
+    out (RA8875_SPI_CTRL),a
     pop af
     ret
 
@@ -56,8 +56,8 @@ ra8875_reset_deassert:
 ; Destroys: AF
 ra8875_cs_start:
     push af
-    ld a,SPI_SELECT_0
-    out (SPI_CTRL),a
+    ld a,RA8875_SPI_SELECT_0
+    out (RA8875_SPI_CTRL),a
     pop af
     ret
 
@@ -66,8 +66,8 @@ ra8875_cs_start:
 ; Destroys: AF
 ra8875_cs_end:
     push af
-    ld a,SPI_IDLE
-    out (SPI_CTRL),a
+    ld a,RA8875_SPI_IDLE
+    out (RA8875_SPI_CTRL),a
     pop af
     ret
 
@@ -76,7 +76,7 @@ ra8875_cs_end:
 ; Input: A = byte to send
 ; Destroys: AF
 ra8875_write:
-    out (SPI_DATA),a
+    out (RA8875_SPI_DATA),a
     nop ; short delay to allow for serialisation
     nop
     nop
@@ -89,9 +89,9 @@ ra8875_write:
 ; Destroys: AF
 ra8875_read:
     ld a,0x00
-    out (SPI_DATA),a
+    out (RA8875_SPI_DATA),a
     nop ; short delay to allow for serialisation
     nop
     nop
-    in a,(SPI_DATA)
+    in a,(RA8875_SPI_DATA)
     ret
