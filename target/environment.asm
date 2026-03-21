@@ -5,8 +5,6 @@
 
 ; RA8875 console RAM base address (console.asm) - base address that the RA8875 console can use for vars
 
-; TODO: break this out into beanboard and beanboardspi targets
-
     PUBLIC RA8875_RAMSTART
     PUBLIC RA8875_GPIO
     PUBLIC RA8875_SPI_CTRL
@@ -16,12 +14,12 @@
     PUBLIC RA8875_SPI_SELECT_0
 
 ; Where we can store variables in RAM
-RA8875_RAMSTART equ 0xe000          
+RA8875_RAMSTART equ 0xe000
 
-; GPIO bit-bang SPI transport (transport_gpio.asm)
+; GPIO bit-bang SPI transport (beanboard.asm)
 RA8875_GPIO equ 6
 
-; Hardware SPI transport (transport_spi.asm)
+; Hardware SPI transport (beanboardspi.asm)
 ; SPI ports (BeanBoardSPI hardware)
 RA8875_SPI_CTRL equ 8              ; control register (74HCT373 latch)
 RA8875_SPI_DATA equ 10             ; data register (74HCT299 shift register)

@@ -9,8 +9,8 @@ Transport-agnostic RA8875 driver for Z80 homebrew systems, extracted from the
 
 Supports two hardware transports:
 
-- **transport_spi.asm** — Hardware SPI (BeanBoardSPI / BeanDeck)
-- **transport_gpio.asm** — GPIO bit-bang SPI (BeanBoard)
+- **target/beanboardspi.asm** — Hardware SPI (BeanBoardSPI / BeanDeck)
+- **target/beanboard.asm** — GPIO bit-bang SPI (BeanBoard)
 
 ## Files
 
@@ -18,8 +18,8 @@ Supports two hardware transports:
 |---|---|
 | `asm/drivers/ra8875.asm` | Core RA8875 chip driver |
 | `asm/drivers/ra8875.inc` | Register definitions and constants |
-| `asm/drivers/transport_spi.asm` | Hardware SPI transport |
-| `asm/drivers/transport_gpio.asm` | GPIO bit-bang SPI transport |
+| `target/beanboardspi.asm` | Hardware SPI transport (BeanBoardSPI) |
+| `target/beanboard.asm` | GPIO bit-bang SPI transport (BeanBoard) |
 | `asm/console_beandeck.asm` | Reference console implementation (may diverge from Marvin) |
 | `target/system.inc` | Stub defining required symbols for standalone builds |
 

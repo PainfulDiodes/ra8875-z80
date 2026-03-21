@@ -3,8 +3,8 @@
 ;
 ; RA8875-specific routines common to all transport implementations.
 ; Link with exactly one transport module:
-;   transport_spi.asm  - hardware SPI (e.g. BeanBoardSPI)
-;   transport_gpio.asm - bit-bang SPI via GPIO (e.g. beanboard)
+;   target/beanboardspi.asm - hardware SPI (BeanBoardSPI)
+;   target/beanboard.asm    - bit-bang SPI via GPIO (BeanBoard)
 ;
 ; Transport interface (EXTERN - provided by transport module):
 ;   ra8875_reset_assert  - Assert hardware RESET of the controller
