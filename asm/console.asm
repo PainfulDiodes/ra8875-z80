@@ -12,6 +12,7 @@
 
     EXTERN RA8875_RAMSTART
 
+    ; RAM variables 4 bytes: col, row, scroll_top, cursor_visible
     RA8875_CURSOR_COL     equ RA8875_RAMSTART + 0  ; 1-byte column (0..RA8875_COLS-1)
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
     RA8875_SCROLL_TOP     equ RA8875_RAMSTART + 2  ; 1-byte physical row at top of display
