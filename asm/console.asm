@@ -10,11 +10,12 @@
     EXTERN ra8875_write_reg
     EXTERN ra8875_read_reg
 
-    ; based on 0xe000 to not clash with MARVIN
-    RA8875_CURSOR_COL     equ 0xe001  ; 1-byte column (0..RA8875_COLS-1)
-    RA8875_CURSOR_ROW     equ 0xe002  ; 1-byte physical row (0..RA8875_ROWS-1)
-    RA8875_SCROLL_TOP     equ 0xe003  ; 1-byte physical row at top of display
-    RA8875_CURSOR_VISIBLE equ 0xe004  ; non-zero = cursor visible, zero = cursor hidden
+    EXTERN RA8875_RAM
+
+    RA8875_CURSOR_COL     equ RA8875_RAM + 0  ; 1-byte column (0..RA8875_COLS-1)
+    RA8875_CURSOR_ROW     equ RA8875_RAM + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
+    RA8875_SCROLL_TOP     equ RA8875_RAM + 2  ; 1-byte physical row at top of display
+    RA8875_CURSOR_VISIBLE equ RA8875_RAM + 3  ; 1-byte non-zero = cursor visible, zero = cursor hidden
 
 ; Initialise RA8875 console state.
 ; Hides hardware cursor, zeroes tracking variables, draws initial software cursor.

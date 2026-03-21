@@ -3,6 +3,11 @@
 ; Port and control register assignments for BeanBoard/BeanBoardSPI hardware.
 ; Other targets must provide their own definitions of these labels.
 
+; RA8875 console RAM base address (console.asm) - base address that the RA8875 console can use for vars
+    PUBLIC RA8875_RAM
+
+RA8875_RAM equ 0xe000               ; 4 bytes: col, row, scroll_top, cursor_visible
+
 ; GPIO bit-bang SPI transport (transport_gpio.asm)
     PUBLIC GPIO_OUT
     PUBLIC GPIO_IN
