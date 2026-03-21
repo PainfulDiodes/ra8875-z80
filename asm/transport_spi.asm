@@ -22,19 +22,11 @@
     PUBLIC ra8875_read
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; definitions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; SPI ports (BeanBoardSPI hardware)
-SPI_CTRL        equ 8       ; control register (74HCT373 latch)
-SPI_DATA        equ 10      ; data register (74HCT299 shift register)
-
-; Control register values (active low bits)
-; Bit 0: RESET, Bit 1: SPI0 CS, Bits 2-7: SPI1-SPI6 CS
-SPI_IDLE        equ 0xFF    ; all deselected, reset released
-SPI_RESET       equ 0xFE    ; bit 0 low = reset asserted
-SPI_SELECT_0    equ 0xFD    ; bit 1 low = SPI0 selected
+    EXTERN SPI_CTRL
+    EXTERN SPI_DATA
+    EXTERN SPI_IDLE
+    EXTERN SPI_RESET
+    EXTERN SPI_SELECT_0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; transport interface
