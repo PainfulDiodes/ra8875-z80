@@ -20,9 +20,9 @@ mkdir -p "$OUTDIR"
 
 echo "Assembling ra8875 modules..."
 for module in ra8875 ra8875_spi ra8875_gpio; do
-    echo "  asm/drivers/$module.asm"
+    echo "  asm/$module.asm"
     z88dk-z80asm -l -m -I"$REPO_DIR" \
-        -o"$OUTDIR/$module.o" "$REPO_DIR/asm/drivers/$module.asm"
+        -o"$OUTDIR/$module.o" "$REPO_DIR/asm/$module.asm"
 done
 
 echo "  asm/console.asm (reference)"
@@ -36,8 +36,8 @@ echo "Assembling test binary (RAM_START=${RAM_START})..."
 z88dk-z80asm -b -l -m -I"$REPO_DIR" -DRAM_START="${RAM_START}" \
     -o"$OUTDIR/test_ra8875.bin" \
     "$REPO_DIR/asm/test/test_ra8875.asm" \
-    "$REPO_DIR/asm/drivers/ra8875.asm" \
-    "$REPO_DIR/asm/drivers/ra8875_spi.asm" \
+    "$REPO_DIR/asm/ra8875.asm" \
+    "$REPO_DIR/asm/ra8875_spi.asm" \
     "$REPO_DIR/asm/console.asm" \
     "$REPO_DIR/asm/test/stubs.asm"
 

@@ -14,7 +14,7 @@
 ; _test_error for inspection.
 
     INCLUDE "asm/system.inc"
-    INCLUDE "asm/drivers/ra8875.inc"
+    INCLUDE "asm/ra8875.inc"
 
     EXTERN ra8875_initialise
     EXTERN ra8875_console_init

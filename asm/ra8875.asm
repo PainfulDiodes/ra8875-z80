@@ -41,7 +41,7 @@
     EXTERN ra8875_write
     EXTERN ra8875_read
 
-INCLUDE "asm/drivers/ra8875.inc"
+INCLUDE "asm/ra8875.inc"
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
