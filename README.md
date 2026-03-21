@@ -9,19 +9,19 @@ Transport-agnostic RA8875 driver for Z80 homebrew systems, extracted from the
 
 Supports two hardware transports:
 
-- **target/beanboardspi.asm** — Hardware SPI (BeanBoardSPI / BeanDeck)
-- **target/beanboard.asm** — GPIO bit-bang SPI (BeanBoard)
+- **targets/beanboardspi.asm** — Hardware SPI (BeanBoardSPI / BeanDeck)
+- **targets/beanboard.asm** — GPIO bit-bang SPI (BeanBoard)
 
 ## Files
 
 | File | Description |
-|---|---|
+| --- | --- |
 | `asm/drivers/ra8875.asm` | Core RA8875 chip driver |
 | `asm/drivers/ra8875.inc` | Register definitions and constants |
-| `target/beanboardspi.asm` | Hardware SPI transport (BeanBoardSPI) |
-| `target/beanboard.asm` | GPIO bit-bang SPI transport (BeanBoard) |
+| `targets/beanboardspi.asm` | Hardware SPI transport (BeanBoardSPI) |
+| `targets/beanboard.asm` | GPIO bit-bang SPI transport (BeanBoard) |
 | `asm/console_beandeck.asm` | Reference console implementation (may diverge from Marvin) |
-| `target/system.inc` | Stub defining required symbols for standalone builds |
+| `targets/system.inc` | Stub defining required symbols for standalone builds |
 
 ## Integration
 
@@ -33,7 +33,7 @@ z88dk-z80asm -I"$HOST_DIR" -I"$RA8875_DIR" ...
 ```
 
 The host's `system.inc` provides the RAM addresses and port constants.
-The stub `target/system.inc` in this repo is used only for standalone builds.
+The stub `targets/system.inc` in this repo is used only for standalone builds.
 
 ## Building standalone
 

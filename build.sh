@@ -25,9 +25,9 @@ for module in ra8875; do
         -o"$OUTDIR/$module.o" "$REPO_DIR/asm/$module.asm"
 done
 for module in beanboard beanboardspi; do
-    echo "  target/$module.asm"
+    echo "  targets/$module.asm"
     z88dk-z80asm -l -m -I"$REPO_DIR" \
-        -o"$OUTDIR/$module.o" "$REPO_DIR/target/$module.asm"
+        -o"$OUTDIR/$module.o" "$REPO_DIR/targets/$module.asm"
 done
 
 echo "  asm/console.asm (reference)"
@@ -40,11 +40,11 @@ echo ""
 echo "Assembling test binary (RAM_START=${RAM_START})..."
 z88dk-z80asm -b -l -m -I"$REPO_DIR" -DRAM_START="${RAM_START}" \
     -o"$OUTDIR/main.bin" \
-    "$REPO_DIR/target/main.asm" \
+    "$REPO_DIR/targets/main.asm" \
     "$REPO_DIR/asm/ra8875.asm" \
-    "$REPO_DIR/target/beanboardspi.asm" \
+    "$REPO_DIR/targets/beanboardspi.asm" \
     "$REPO_DIR/asm/console.asm" \
-    "$REPO_DIR/target/environment.asm"
+    "$REPO_DIR/targets/environment.asm"
 
 z88dk-appmake +hex --org "${RAM_START}" \
     -b "$OUTDIR/main.bin" \

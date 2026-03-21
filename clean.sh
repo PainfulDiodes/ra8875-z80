@@ -13,4 +13,4 @@ fi
 # Clean assembler intermediate files
 rm -f "$SCRIPT_DIR"/asm/*.lis "$SCRIPT_DIR"/asm/*.o
 rm -f "$SCRIPT_DIR"/asm/drivers/*.lis "$SCRIPT_DIR"/asm/drivers/*.o
-rm -f "$SCRIPT_DIR"/target/*.lis "$SCRIPT_DIR"/target/*.o
+rm -f "$SCRIPT_DIR"/targets/*.lis "$SCRIPT_DIR"/targets/*.o
