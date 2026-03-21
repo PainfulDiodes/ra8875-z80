@@ -3,16 +3,16 @@
 ;
 ; RA8875-specific routines common to all transport implementations.
 ; Link with exactly one transport module:
-;   transport_spi.asm  - BeanBoardSPI hardware SPI (beandeck)
-;   transport_gpio.asm - BeanBoard GPIO bit-bang SPI (beanboard)
+;   transport_spi.asm  - hardware SPI (e.g. BeanBoardSPI)
+;   transport_gpio.asm - bit-bang SPI via GPIO (e.g. beanboard)
 ;
 ; Transport interface (EXTERN - provided by transport module):
-;   ra8875_reset_assert  - Assert hardware RESET
+;   ra8875_reset_assert  - Assert hardware RESET of the controller
 ;   ra8875_reset_deassert - Deassert hardware RESET
-;   ra8875_cs_start      - Assert CS with setup timing
-;   ra8875_cs_end        - Deassert CS with hold timing
-;   ra8875_write         - Write byte via SPI
-;   ra8875_read          - Read byte via SPI
+;   ra8875_cs_start      - Assert CS of the controller 
+;   ra8875_cs_end        - Deassert CS
+;   ra8875_write         - Write byte
+;   ra8875_read          - Read byte
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     PUBLIC ra8875_reset
@@ -41,8 +41,7 @@
     EXTERN ra8875_write
     EXTERN ra8875_read
 
-INCLUDE "asm/ra8875.inc"
-
+INCLUDE "ra8875.inc"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; common timing and reset
