@@ -21,7 +21,8 @@
     PUBLIC ra8875_write
     PUBLIC ra8875_read
 
-INCLUDE "target/system.inc"
+    EXTERN GPIO_OUT
+    EXTERN GPIO_IN
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
