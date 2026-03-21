@@ -1,8 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; RA8875 GPIO bit-bang SPI transport layer (BeanBoard GPIO)
+; RA8875 GPIO bit-bang SPI transport layer (e.g. BeanBoard GPIO)
 ;
 ; Provides the low-level SPI transport interface for ra8875_core.asm.
-; Bit-bangs the SPI protocol over the BeanBoard GPIO port, with manual
+; Bit-bangs the SPI protocol over a GPIO port, with manual
 ; control of SCK, MOSI, MISO, CS, and RESET signals.
 ;
 ; Interface (PUBLIC):
@@ -21,8 +21,7 @@
     PUBLIC ra8875_write
     PUBLIC ra8875_read
 
-    EXTERN RA8875_GPIO_OUT
-    EXTERN RA8875_GPIO_IN
+    EXTERN RA8875_GPIO
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -64,7 +63,7 @@ GPO_HIGH_STATE   equ 1 << RA8875_MOSI | 1 << RA8875_RESET
 ra8875_reset_assert:
     push af
     ld a,GPO_RESET_STATE
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     pop af
     ret
 
@@ -74,7 +73,7 @@ ra8875_reset_assert:
 ra8875_reset_deassert:
     push af
     ld a,GPO_INACTIVE_STATE
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     pop af
     ret
 
@@ -85,7 +84,7 @@ ra8875_reset_deassert:
 ra8875_cs_start:
     push af
     ld a,GPO_ACTIVE_STATE
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     pop af
     ret
 
@@ -95,7 +94,7 @@ ra8875_cs_start:
 ra8875_cs_end:
     push af
     ld a,GPO_INACTIVE_STATE
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     pop af
     ret
 
@@ -116,13 +115,13 @@ _ra8875_write_loop:
     jr nc,_ra8875_write_bit
     ld a,GPO_HIGH_STATE
 _ra8875_write_bit:
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     ; clock high
     or 1 << RA8875_SCK
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     ; clock low
     and ~(1 << RA8875_SCK)
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     ; restore A
     ld a,d
     djnz _ra8875_write_loop
@@ -145,12 +144,12 @@ _ra8875_read_loop:
     ld d,a
     ; Set initial low state
     ld a,GPO_LOW_STATE
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     ; Set clock high
     or 1 << RA8875_SCK
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     ; Read MISO bit
-    in a,(RA8875_GPIO_IN)
+    in a,(RA8875_GPIO)
     bit RA8875_MISO,a
     jr z,_ra8875_read_low
     ; MISO high - set LSB
@@ -164,7 +163,7 @@ _ra8875_read_bit_done:
     ; Set clock low
     ld d,a
     ld a,GPO_LOW_STATE
-    out (RA8875_GPIO_OUT),a
+    out (RA8875_GPIO),a
     ; Restore received byte
     ld a,d
     djnz _ra8875_read_loop
