@@ -2,7 +2,7 @@ IFNDEF _SYSTEM_INC
 DEFINE _SYSTEM_INC
 
 ; Stub system.inc for standalone ra8875 repo builds.
-; Defines only the symbols required by ra8875_gpio.asm and console_beandeck.asm.
+; Defines only the symbols required by transport_gpio.asm and console_beandeck.asm.
 ; In a host project (e.g. Marvin) these are provided by the host's system.inc
 ; via the host include root; this stub is only used when assembling in isolation.
 
@@ -20,7 +20,7 @@ CONSOLE_STATUS          equ 0xe000
 CONSOLE_STATUS_USB      equ 1
 CONSOLE_STATUS_BEANBOARD equ 2
 
-; GPIO bit-bang SPI ports (used by ra8875_gpio.asm)
+; GPIO bit-bang SPI ports (used by transport_gpio.asm)
 GPIO_OUT equ 6
 GPIO_IN  equ 7
 
