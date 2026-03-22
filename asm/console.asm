@@ -1,3 +1,22 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; RA8875 console layer
+;
+; Implements a scrolling text console on top of the RA8875 text rendering
+; hardware. Tracks cursor position and scroll state in RAM, draws a software
+; block cursor, and handles scrolling via the RA8875 vertical offset register.
+;
+; Public interface:
+;   ra8875_console_init     - initialise state; call after ra8875_initialise
+;   ra8875_console_putchar  - write character in A to console
+;   ra8875_console_puts     - write zero-terminated string pointed to by HL
+;
+; Special characters recognised by ra8875_console_putchar:
+;   0x0a  LF  - newline: erase cursor, advance to next row (scrolls if needed)
+;   0x0d  CR  - same as LF
+;   0x0e  SO  - cursor on:  make software cursor visible
+;   0x0f  SI  - cursor off: hide software cursor
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
     INCLUDE "ra8875.inc"
 
     PUBLIC ra8875_console_putchar
@@ -43,6 +62,7 @@ ra8875_console_init:
 
 ; send character in A to console
 ra8875_console_putchar:
+    push af
     push bc
     push de
     push hl
@@ -92,6 +112,7 @@ _putchar_done:
     pop hl
     pop de
     pop bc
+    pop af
     ret
 
 
