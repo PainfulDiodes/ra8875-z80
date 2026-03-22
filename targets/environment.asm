@@ -1,5 +1,5 @@
 ; RAM and port assignments for BeanBoard/BeanBoardSPI hardware.
-; Other targets must provide their own definitions of these labels
+; Other targets may provide their own definitions of these labels
 ; to Fulfil EXTERN labels in the asm modules.
 
 ; --- Console (console.asm) ---

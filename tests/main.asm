@@ -1,4 +1,4 @@
-; RA8875 display initialisation test
+; RA8875 display test
 ;
 ; Standalone RAM-loaded program.  Assemble with -DRAM_START=<addr> to
 ; override the load address (default 0x8000).

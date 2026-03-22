@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# Build script for ra8875 standalone repo.
 # Assembles all driver modules and links a test binary for each target:
 # beanboard and beanboardspi. Each binary includes the target transport,
 # general environment, ra8875 driver, console, and the tests main module.

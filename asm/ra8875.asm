@@ -5,16 +5,10 @@
 ; Link with exactly one transport module:
 ;   targets/beanboardspi.asm - hardware SPI (BeanBoardSPI)
 ;   targets/beanboard.asm    - bit-bang SPI via GPIO (BeanBoard)
-;
-; Transport interface (EXTERN - provided by transport module):
-;   ra8875_reset_assert  - Assert hardware RESET of the controller
-;   ra8875_reset_deassert - Deassert hardware RESET
-;   ra8875_cs_start      - Assert CS of the controller 
-;   ra8875_cs_end        - Deassert CS
-;   ra8875_write         - Write byte
-;   ra8875_read          - Read byte
+;   other targets may of course be added
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; Public functions - may be called by console.asm or external programs
     PUBLIC ra8875_reset
     PUBLIC ra8875_write_command
     PUBLIC ra8875_write_data
@@ -34,6 +28,13 @@
     PUBLIC ra8875_putchar
     PUBLIC ra8875_puts
 
+; Transport interface (EXTERN - provided by transport module):
+;   ra8875_reset_assert  - Assert hardware RESET of the controller
+;   ra8875_reset_deassert - Deassert hardware RESET
+;   ra8875_cs_start      - Assert CS of the controller 
+;   ra8875_cs_end        - Deassert CS
+;   ra8875_write         - Write byte
+;   ra8875_read          - Read byte
     EXTERN ra8875_reset_assert
     EXTERN ra8875_reset_deassert
     EXTERN ra8875_cs_start

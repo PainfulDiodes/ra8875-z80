@@ -1,9 +1,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; RA8875 SPI transport layer (BeanBoardSPI hardware)
+; RA8875 simple transport layer for parallel interface
 ;
-; Provides the low-level SPI transport interface for ra8875_core.asm.
-; Uses the BeanBoardSPI expansion board: 74HCT299 shift register for
-; serialisation and 74HCT373 latch for chip select and reset control.
+; Provides the low-level SPI transport interface to be used by ra8875.asm.
+; Written for BeanBoard with the BeanBoardSPI expansion board which 
+; has a hardware SPI interface to connect to the RA8875. 
 ;
 ; Interface (PUBLIC):
 ;   ra8875_reset_assert  - Assert RESET via control register
@@ -21,6 +21,7 @@
     PUBLIC ra8875_write
     PUBLIC ra8875_read
 
+    ; port numbers provided in environment.asm
     EXTERN RA8875_SPI_CTRL
     EXTERN RA8875_SPI_DATA
 

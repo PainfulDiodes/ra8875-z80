@@ -1,8 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; RA8875 GPIO bit-bang SPI transport layer (e.g. BeanBoard GPIO)
+; RA8875 bit-bang SPI transport layer
 ;
-; Provides the low-level SPI transport interface for ra8875_core.asm.
-; Bit-bangs the SPI protocol over a GPIO port, with manual
+; Provides the low-level SPI transport interface to be used by ra8875.asm.
+; Bit-bangs the SPI protocol over the BeanBoard GPIO port, with manual
 ; control of SCK, MOSI, MISO, CS, and RESET signals.
 ;
 ; Interface (PUBLIC):
@@ -21,6 +21,7 @@
     PUBLIC ra8875_write
     PUBLIC ra8875_read
 
+    ; port number provided in environment.asm
     EXTERN RA8875_GPIO
 
 
