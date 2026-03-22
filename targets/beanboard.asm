@@ -31,27 +31,26 @@
 ; Pin definitions for RA8875 SPI on GPIO port
 ; GPO
 ; Serial Clock
-RA8875_SCK        equ 0
+RA8875_GPO_BIT_SCK  equ 0
 ; Master Out Slave In
-RA8875_MOSI       equ 1
+RA8875_GPO_BIT_MOSI equ 1
 ; RA8875 RESET - active LOW
-RA8875_RESET      equ 2
+RA8875_GPO_BIT_RESET equ 2
 ; Chip Select - active LOW
-RA8875_CS         equ 3
+RA8875_GPO_BIT_CS   equ 3
 ; GPI
-RA8875_WAIT       equ 0
-RA8875_MISO       equ 1
+RA8875_GPI_BIT_MISO equ 0
 
-; RESET active/low, CS inactive/high
-GPO_RESET_STATE  equ 1 << RA8875_CS
-; RESET inactive/high, CS inactive/high
-GPO_INACTIVE_STATE   equ 1 << RA8875_CS | 1 << RA8875_RESET
-; RESET inactive/high, CS active/low
-GPO_ACTIVE_STATE equ 1 << RA8875_RESET
-; RESET inactive/high, CS active/low, MOSI low
-GPO_LOW_STATE    equ 1 << RA8875_RESET
-; RESET inactive/high, CS active/low, MOSI high
-GPO_HIGH_STATE   equ 1 << RA8875_MOSI | 1 << RA8875_RESET
+; RESET low (active), CS high (inactive)
+RA8875_GPO_RESET_STATE      equ 1 << RA8875_GPO_BIT_CS
+; RESET high (inactive), CS high (inactive)
+RA8875_GPO_INACTIVE_STATE   equ 1 << RA8875_GPO_BIT_CS | 1 << RA8875_GPO_BIT_RESET
+; RESET high (inactive), CS low (active)
+RA8875_GPO_ACTIVE_STATE     equ 1 << RA8875_GPO_BIT_RESET
+; RESET high (inactive), CS low (active), MOSI low
+RA8875_GPO_LOW_STATE        equ 1 << RA8875_GPO_BIT_RESET
+; RESET high (inactive), CS low (active), MOSI high
+RA8875_GPO_HIGH_STATE       equ 1 << RA8875_GPO_BIT_MOSI | 1 << RA8875_GPO_BIT_RESET
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -62,7 +61,7 @@ GPO_HIGH_STATE   equ 1 << RA8875_MOSI | 1 << RA8875_RESET
 ; Destroys: AF
 ra8875_reset_assert:
     push af
-    ld a,GPO_RESET_STATE
+    ld a,RA8875_GPO_RESET_STATE
     out (RA8875_GPIO),a
     pop af
     ret
@@ -72,7 +71,7 @@ ra8875_reset_assert:
 ; Destroys: AF
 ra8875_reset_deassert:
     push af
-    ld a,GPO_INACTIVE_STATE
+    ld a,RA8875_GPO_INACTIVE_STATE
     out (RA8875_GPIO),a
     pop af
     ret
@@ -83,7 +82,7 @@ ra8875_reset_deassert:
 ; Destroys: AF
 ra8875_cs_start:
     push af
-    ld a,GPO_ACTIVE_STATE
+    ld a,RA8875_GPO_ACTIVE_STATE
     out (RA8875_GPIO),a
     pop af
     ret
@@ -93,7 +92,7 @@ ra8875_cs_start:
 ; Destroys: AF
 ra8875_cs_end:
     push af
-    ld a,GPO_INACTIVE_STATE
+    ld a,RA8875_GPO_INACTIVE_STATE
     out (RA8875_GPIO),a
     pop af
     ret
@@ -111,16 +110,16 @@ _ra8875_write_loop:
     ; stash a
     ld d,a
     ; default to MOSI low
-    ld a,GPO_LOW_STATE
+    ld a,RA8875_GPO_LOW_STATE
     jr nc,_ra8875_write_bit
-    ld a,GPO_HIGH_STATE
+    ld a,RA8875_GPO_HIGH_STATE
 _ra8875_write_bit:
     out (RA8875_GPIO),a
     ; clock high
-    or 1 << RA8875_SCK
+    or 1 << RA8875_GPO_BIT_SCK
     out (RA8875_GPIO),a
     ; clock low
-    and ~(1 << RA8875_SCK)
+    and ~(1 << RA8875_GPO_BIT_SCK)
     out (RA8875_GPIO),a
     ; restore A
     ld a,d
@@ -143,14 +142,14 @@ _ra8875_read_loop:
     ; stash a
     ld d,a
     ; Set initial low state
-    ld a,GPO_LOW_STATE
+    ld a,RA8875_GPO_LOW_STATE
     out (RA8875_GPIO),a
     ; Set clock high
-    or 1 << RA8875_SCK
+    or 1 << RA8875_GPO_BIT_SCK
     out (RA8875_GPIO),a
     ; Read MISO bit
     in a,(RA8875_GPIO)
-    bit RA8875_MISO,a
+    bit RA8875_GPI_BIT_MISO,a
     jr z,_ra8875_read_low
     ; MISO high - set LSB
     ld a,d
@@ -162,7 +161,7 @@ _ra8875_read_low:
 _ra8875_read_bit_done:
     ; Set clock low
     ld d,a
-    ld a,GPO_LOW_STATE
+    ld a,RA8875_GPO_LOW_STATE
     out (RA8875_GPIO),a
     ; Restore received byte
     ld a,d

@@ -21,12 +21,20 @@
     PUBLIC ra8875_write
     PUBLIC ra8875_read
 
-
     EXTERN RA8875_SPI_CTRL
     EXTERN RA8875_SPI_DATA
-    EXTERN RA8875_SPI_IDLE
-    EXTERN RA8875_SPI_RESET
-    EXTERN RA8875_SPI_SELECT_0
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; definitions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Control register values (active low bits)
+; Bit 0: RESET, Bit 1: SPI0 CS, Bits 2-7: SPI1-SPI6 CS (all need to be set high)
+RA8875_SPI_IDLE     equ 0xFF       ; all deselected, reset released
+RA8875_SPI_RESET    equ 0xFE       ; bit 0 low = reset asserted
+RA8875_SPI_SELECT_0 equ 0xFD       ; bit 1 low = SPI0 selected
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; transport interface
