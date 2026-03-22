@@ -40,7 +40,7 @@ echo ""
 echo "Assembling test binary (RAM_START=${RAM_START})..."
 z88dk-z80asm -b -l -m -I"$REPO_DIR" -DRAM_START="${RAM_START}" \
     -o"$OUTDIR/main.bin" \
-    "$REPO_DIR/targets/main.asm" \
+    "$REPO_DIR/tests/main.asm" \
     "$REPO_DIR/asm/ra8875.asm" \
     "$REPO_DIR/targets/beanboardspi.asm" \
     "$REPO_DIR/asm/console.asm" \
