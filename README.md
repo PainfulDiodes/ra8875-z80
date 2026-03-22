@@ -4,7 +4,7 @@ Z80 assembly driver library for the RA8875 TFT display controller.
 
 ## Overview
 
-Transport-agnostic RA8875 driver for Z80 homebrew systems, extracted from the
+Transport-agnostic RA8875 driver for Z80 homebrew systems, originally extracted from the
 [Marvin](https://github.com/PainfulDiodes/Marvin) firmware.
 
 Supports two hardware transports:
@@ -12,34 +12,36 @@ Supports two hardware transports:
 - **targets/beanboardspi.asm** — Hardware SPI (BeanBoardSPI / BeanDeck)
 - **targets/beanboard.asm** — GPIO bit-bang SPI (BeanBoard)
 
+Other transports / environments could easily be plugged in.
+
 ## Files
 
-| File | Description |
-| --- | --- |
-| `asm/drivers/ra8875.asm` | Core RA8875 chip driver |
-| `asm/drivers/ra8875.inc` | Register definitions and constants |
-| `targets/beanboardspi.asm` | Hardware SPI transport (BeanBoardSPI) |
-| `targets/beanboard.asm` | GPIO bit-bang SPI transport (BeanBoard) |
-| `asm/console_beandeck.asm` | Reference console implementation (may diverge from Marvin) |
-| `targets/system.inc` | Stub defining required symbols for standalone builds |
+| File                       | Description                                        |
+|----------------------------|----------------------------------------------------|
+| `asm/ra8875.asm`           | Core RA8875 chip driver                            |
+| `asm/ra8875.inc`           | Register definitions and constants                 |
+| `asm/console.asm`          | Console layer (scrolling and software cursor)      |
+| `targets/beanboardspi.asm` | Parallel transport (hardware SPI) for BeanBoardSPI |
+| `targets/beanboard.asm`    | Bit-bang SPI transport for BeanBoard GPIO          |
+| `targets/environment.asm`  | RAM and port assignments                           |
+| `tests/main.asm`           | Example test program                               |
 
 ## Integration
 
-Include paths resolve from the assembler include root (`-I`). Pass two roots
-when building a host project:
+Provide additional targets, and update the build script to link with the core library.
 
-```bash
-z88dk-z80asm -I"$HOST_DIR" -I"$RA8875_DIR" ...
-```
-
-The host's `system.inc` provides the RAM addresses and port constants.
-The stub `targets/system.inc` in this repo is used only for standalone builds.
-
-## Building standalone
+## Building
 
 ```bash
 ./build.sh
 ```
 
-Requires [z88dk](https://github.com/z88dk/z88dk). Assembles all modules to
-`output/` to verify they assemble cleanly.
+Requires [z88dk](https://github.com/z88dk/z88dk). Assembles both targets
+(`beanboard` and `beanboardspi`) into `output/`, linking the test program,
+driver, console, and environment modules.
+
+An optional RAM start address can be passed:
+
+```bash
+./build.sh 0x9000
+```
