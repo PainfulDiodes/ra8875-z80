@@ -57,7 +57,10 @@ test_ra8875:
     ld a,0x0e
     call ra8875_console_putchar
 
+    ld b,1
+
 _test_loop:
+    call _print_all_chars
     jr _test_loop           ; loop forever
 
 _test_error:
