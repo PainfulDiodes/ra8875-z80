@@ -46,8 +46,10 @@ test_ra8875:
     ld a,0x0f
     call ra8875_console_putchar
 
-    ; print all printable characters x4, no delay
+    ; print all printable characters
     ld b,0                      ; B=0: no inter-character delay
+    call _print_all_chars
+    call _print_all_chars
     call _print_all_chars
     call _print_all_chars
     call _print_all_chars
@@ -57,8 +59,8 @@ test_ra8875:
     ld a,0x0e
     call ra8875_console_putchar
 
-    ld b,1
-
+    ld b,1                      ; B=1: one delay per character
+    
 _test_loop:
     call _print_all_chars
     jr _test_loop           ; loop forever
@@ -69,8 +71,10 @@ _test_error:
 ; print all 256 characters (0x00-0xff) to the console
 ; skips console special characters: 0x0a LF, 0x0d CR, 0x0e SO, 0x0f SI
 ; B: number of _delay calls after each character (0 = no delay)
-; saves delay count to D; _delay preserves all registers
+; preserves all registers
 _print_all_chars:
+    push bc
+    push de
     ld d,b                      ; save delay count
     ld a,0
 _print_all_loop:
@@ -96,6 +100,8 @@ _print_all_skip:
     ld a,0x0a                   ; LF
     call ra8875_console_putchar
     call ra8875_console_putchar
+    pop de
+    pop bc
     ret
 
 ; 256x256 nop delay; preserves all registers
