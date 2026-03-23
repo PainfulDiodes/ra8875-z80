@@ -36,26 +36,15 @@ test_ra8875:
     ; short settling delay
     call _delay
 
+    ; print splash screen
+    ld hl,_splash
+    call _ra8875_puts_fast
+
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
 
-    ; print splash screen: first char via ra8875_putchar (writes MRWC command),
-    ; subsequent chars via ra8875_write_data (MRWC register stays selected)
-    ld hl,_splash
-    ld a,(hl)
-    or a
-    jr z,_splash_stall          ; empty string, nothing to print
-    call ra8875_putchar
-    inc hl
-_splash_puts_loop:
-    ld a,(hl)
-    or a
-    jr z,_splash_stall
-    call ra8875_write_data
-    inc hl
-    jr _splash_puts_loop
-_splash_stall:
-    jr _splash_stall
+_test_stall:
+    jr _test_stall
 
     ; print the test message
     ld hl,_msg
@@ -142,6 +131,29 @@ _delay_inner:
     dec c
     jr nz,_delay_outer
     pop bc
+    ret
+
+; print a zero-terminated string pointed to by hl directly to the RA8875.
+; first char via ra8875_putchar (writes MRWC command), subsequent chars via
+; ra8875_write_data (MRWC register stays selected). preserves all registers.
+_ra8875_puts_fast:
+    push af
+    push hl
+    ld a,(hl)
+    or a
+    jr z,_ra8875_puts_fast_end  ; empty string
+    call ra8875_putchar
+    inc hl
+_ra8875_puts_fast_loop:
+    ld a,(hl)
+    or a
+    jr z,_ra8875_puts_fast_end
+    call ra8875_write_data
+    inc hl
+    jr _ra8875_puts_fast_loop
+_ra8875_puts_fast_end:
+    pop hl
+    pop af
     ret
 
 ; print a zero-terminated string pointed to by hl to the console
