@@ -1,4 +1,4 @@
-# ra8875
+# RA8875 Z80
 
 Z80 assembly driver library for the RA8875 TFT display controller.
 
@@ -7,12 +7,12 @@ Z80 assembly driver library for the RA8875 TFT display controller.
 Transport-agnostic RA8875 driver for Z80 homebrew systems, originally extracted from the
 [Marvin](https://github.com/PainfulDiodes/Marvin) firmware.
 
-Supports two hardware transports:
+Two hardware transports are provided:
 
-- **targets/beanboardspi.asm** — Hardware SPI (BeanBoardSPI / BeanDeck)
-- **targets/beanboard.asm** — GPIO bit-bang SPI (BeanBoard)
+- **targets/beanboardspi.asm** — Hardware SPI ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck)
+- **targets/beanboard.asm** — GPIO bit-bang SPI ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard))
 
-Other transports / environments could easily be plugged in.
+Other transports / environments could easily be added.
 
 ## Files
 
@@ -25,10 +25,6 @@ Other transports / environments could easily be plugged in.
 | `targets/beanboard.asm`    | Bit-bang SPI transport for BeanBoard GPIO          |
 | `targets/environment.asm`  | RAM and port assignments                           |
 | `tests/main.asm`           | Example test program                               |
-
-## Integration
-
-Provide additional targets, and update the build script to link with the core library.
 
 ## Building
 
