@@ -37,6 +37,12 @@ test_ra8875:
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
 
+    ; print splash screen
+    ld hl,_splash
+    call ra8875_console_puts
+_splash_stall:
+    jr _splash_stall
+
     ; print the test message
     ld hl,_msg
     call ra8875_console_puts
@@ -163,4 +169,28 @@ _all_chars:
     defb 0xd0,0xd1,0xd2,0xd3,0xd4,0xd5,0xd6,0xd7,0xd8,0xd9,0xda,0xdb,0xdc,0xdd,0xde,0xdf
     defb 0xe0,0xe1,0xe2,0xe3,0xe4,0xe5,0xe6,0xe7,0xe8,0xe9,0xea,0xeb,0xec,0xed,0xee,0xef
     defb 0xf0,0xf1,0xf2,0xf3,0xf4,0xf5,0xf6,0xf7,0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
+    defb 0x00                                   ; zero terminator
+
+_splash:
+    defm "####################################################################################################"
+    defm "####################################################################################################"
+    defm "####################################################################################################"
+    defm "######                                                                                        ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ            888888888888888               0000000000000       ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ          8888888888888888888           00000000000000000     ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ         88888888     88888888         0000000     0000000    ######"
+    defm "######                ZZZZZZZZZ          8888888       8888888        0000000       0000000   ######"
+    defm "######              ZZZZZZZZZ            8888888       8888888        0000000       0000000   ######"
+    defm "######            ZZZZZZZZZ               8888888888888888888         0000000       0000000   ######"
+    defm "######          ZZZZZZZZZ                   888888888888888           0000000       0000000   ######"
+    defm "######        ZZZZZZZZZ                   8888888888888888888         0000000       0000000   ######"
+    defm "######      ZZZZZZZZZ                    8888888       8888888        0000000       0000000   ######"
+    defm "######    ZZZZZZZZZ                      8888888       8888888        0000000       0000000   ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ         88888888     88888888         0000000     0000000    ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ          8888888888888888888           00000000000000000     ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ            888888888888888               0000000000000       ######"
+    defm "######                                                                                        ######"
+    defm "####################################################################################################"
+    defm "####################################################################################################"
+    defm "####################################################################################################"
     defb 0x00                                   ; zero terminator
