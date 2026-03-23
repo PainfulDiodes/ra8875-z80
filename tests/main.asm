@@ -18,6 +18,8 @@
     EXTERN ra8875_initialise
     EXTERN ra8875_console_init
     EXTERN ra8875_console_putchar
+    EXTERN ra8875_putchar
+    EXTERN ra8875_write_data
 
 IFNDEF RAM_START
 RAM_START equ 0x8000
@@ -37,9 +39,21 @@ test_ra8875:
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
 
-    ; print splash screen
+    ; print splash screen: first char via ra8875_putchar (writes MRWC command),
+    ; subsequent chars via ra8875_write_data (MRWC register stays selected)
     ld hl,_splash
-    call ra8875_console_puts
+    ld a,(hl)
+    or a
+    jr z,_splash_stall          ; empty string, nothing to print
+    call ra8875_putchar
+    inc hl
+_splash_puts_loop:
+    ld a,(hl)
+    or a
+    jr z,_splash_stall
+    call ra8875_write_data
+    inc hl
+    jr _splash_puts_loop
 _splash_stall:
     jr _splash_stall
 
