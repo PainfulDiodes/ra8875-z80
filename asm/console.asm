@@ -20,7 +20,6 @@
     INCLUDE "ra8875.inc"
 
     PUBLIC ra8875_console_putchar
-    PUBLIC ra8875_console_puts
     PUBLIC ra8875_console_init
 
     EXTERN ra8875_putchar
@@ -282,19 +281,4 @@ _draw_cursor:
 _draw_cursor_done:
     pop bc
     pop af
-    ret
-
-
-; print a zero-terminated string pointed to by hl to the console
-ra8875_console_puts:
-    push hl
-_puts_loop:
-    ld a,(hl)
-    cp 0
-    jr z,_puts_end
-    call ra8875_console_putchar
-    inc hl
-    jp _puts_loop
-_puts_end:
-    pop hl
     ret

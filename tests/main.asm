@@ -17,7 +17,6 @@
 
     EXTERN ra8875_initialise
     EXTERN ra8875_console_init
-    EXTERN ra8875_console_puts
     EXTERN ra8875_console_putchar
 
 IFNDEF RAM_START
@@ -123,6 +122,20 @@ _delay_inner:
     dec c
     jr nz,_delay_outer
     pop bc
+    ret
+
+; print a zero-terminated string pointed to by hl to the console
+ra8875_console_puts:
+    push hl
+_puts_loop:
+    ld a,(hl)
+    cp 0
+    jr z,_puts_end
+    call ra8875_console_putchar
+    inc hl
+    jp _puts_loop
+_puts_end:
+    pop hl
     ret
 
 _msg:
