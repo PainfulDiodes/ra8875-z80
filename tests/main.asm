@@ -18,6 +18,8 @@
     EXTERN ra8875_initialise
     EXTERN ra8875_console_init
     EXTERN ra8875_console_putchar
+    EXTERN ra8875_console_cursor_x
+    EXTERN ra8875_console_cursor_y
     EXTERN ra8875_putchar
     EXTERN ra8875_write_data
 
@@ -42,6 +44,11 @@ test_ra8875:
 
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
+
+    ld a,20
+    call ra8875_console_cursor_x
+    ld a,10
+    call ra8875_console_cursor_y
 
 _test_stall:
     jr _test_stall

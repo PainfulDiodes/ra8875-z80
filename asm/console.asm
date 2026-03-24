@@ -9,6 +9,8 @@
 ;   ra8875_console_init     - initialise state; call after ra8875_initialise
 ;   ra8875_console_putchar  - write character in A to console
 ;   ra8875_console_puts     - write zero-terminated string pointed to by HL
+;   ra8875_console_cursor_x - set cursor column to A (0..RA8875_COLS-1)
+;   ra8875_console_cursor_y - set cursor row to A (0..RA8875_ROWS-1, logical)
 ;
 ; Special characters recognised by ra8875_console_putchar:
 ;   0x0a  LF  - newline: erase cursor, advance to next row (scrolls if needed)
@@ -21,6 +23,8 @@
 
     PUBLIC ra8875_console_putchar
     PUBLIC ra8875_console_init
+    PUBLIC ra8875_console_cursor_x
+    PUBLIC ra8875_console_cursor_y
 
     EXTERN ra8875_putchar
     EXTERN ra8875_cursor_x
@@ -110,6 +114,39 @@ _putchar_done:
     ld a,b
     pop hl
     pop de
+    pop bc
+    pop af
+    ret
+
+
+; Set console cursor column. A = column (0..RA8875_COLS-1).
+; Erases the cursor at the current position, updates the column, redraws.
+; Preserves all registers.
+ra8875_console_cursor_x:
+    call _erase_cursor
+    ld (RA8875_CURSOR_COL),a
+    call _draw_cursor
+    ret
+
+
+; Set console cursor row. A = logical row (0 = top of visible area, 0..RA8875_ROWS-1).
+; Converts logical row to physical row accounting for scroll_top.
+; Erases the cursor at the current position, updates the row, redraws.
+; Preserves all registers.
+ra8875_console_cursor_y:
+    push af
+    push bc
+    call _erase_cursor
+    ; convert logical row in A to physical: (scroll_top + A) % RA8875_ROWS
+    ld b,a
+    ld a,(RA8875_SCROLL_TOP)
+    add a,b
+    cp RA8875_ROWS
+    jr c,_cursor_y_no_wrap
+    sub RA8875_ROWS
+_cursor_y_no_wrap:
+    ld (RA8875_CURSOR_ROW),a
+    call _draw_cursor
     pop bc
     pop af
     ret
