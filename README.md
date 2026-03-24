@@ -12,19 +12,19 @@ Two hardware transports are provided:
 - **targets/beanboardspi.asm** — Hardware SPI ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck)
 - **targets/beanboard.asm** — GPIO bit-bang SPI ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard))
 
-Other transports / environments could easily be added.
+Other transports / environments may be added.
 
 ## Files
 
-| File                       | Description                                        |
-|----------------------------|----------------------------------------------------|
-| `asm/ra8875.asm`           | Core RA8875 chip driver                            |
-| `asm/ra8875.inc`           | Register definitions and constants                 |
-| `asm/console.asm`          | Console layer (scrolling and software cursor)      |
-| `targets/beanboardspi.asm` | Parallel transport (hardware SPI) for BeanBoardSPI |
-| `targets/beanboard.asm`    | Bit-bang SPI transport for BeanBoard GPIO          |
-| `targets/environment.asm`  | RAM and port assignments                           |
-| `tests/main.asm`           | Example test program                               |
+| File                       | Description                                            |
+|----------------------------|--------------------------------------------------------|
+| `asm/ra8875.asm`           | Core RA8875 chip driver                                |
+| `asm/ra8875.inc`           | RA8875 Register definitions and constants              |
+| `asm/console.asm`          | Optional console layer (scrolling and software cursor) |
+| `targets/beanboardspi.asm` | Parallel transport (hardware SPI) for BeanBoardSPI     |
+| `targets/beanboard.asm`    | Bit-bang SPI transport for BeanBoard GPIO              |
+| `targets/environment.asm`  | RAM and port assignments                               |
+| `tests/main.asm`           | Example test harness                                   |
 
 ## Building
 
