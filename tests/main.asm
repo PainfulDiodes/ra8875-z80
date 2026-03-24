@@ -22,6 +22,8 @@
     EXTERN ra8875_console_cursor_y
     EXTERN ra8875_putchar
     EXTERN ra8875_write_data
+    EXTERN RA8875_CONSOLE_CURSOR_OFF
+    EXTERN RA8875_CONSOLE_CURSOR_ON
 
 IFNDEF RAM_START
 RAM_START equ 0x8000
@@ -45,10 +47,21 @@ test_ra8875:
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
 
+    ld a,RA8875_CONSOLE_CURSOR_OFF
+    call ra8875_console_putchar
+
     ld a,20
     call ra8875_console_cursor_x
     ld a,10
     call ra8875_console_cursor_y
+
+    ld a,0
+    call ra8875_console_cursor_x
+    ld a,22
+    call ra8875_console_cursor_y
+
+    ld a,RA8875_CONSOLE_CURSOR_ON
+    call ra8875_console_putchar
 
 _test_stall:
     jr _test_stall
