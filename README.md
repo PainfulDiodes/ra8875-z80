@@ -1,6 +1,12 @@
-# RA8875 Z80
+# RA8875 Z80 v0.1
 
 Z80 assembly driver library for the RA8875 TFT display controller.
+
+This is a basic initial version.
+
+The core library is functional for text output, but there is no support for colour or graphics. Although the architecture is pluggable for different environments, the core library has been built and tested with only one specific hardware setup, and needs some work to make it more flexible. For example, it has only been used with a 800x480 TFT display and driven by a 10MHz Z80 (so software delays may be inadequate for slower clocks).
+
+The console is minimal - work could be done to support escape sequences to standardise it. It also does not support backspace (yet).
 
 ## Overview
 
