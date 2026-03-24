@@ -24,7 +24,7 @@ test_start:
     call ra8875_initialise
     jp nz,_test_error
 
-    ; short settling delay
+    ; RA8875 settling delay
     call delay
 
     ; initialise the console layer (cursor state, software cursor)
@@ -64,6 +64,7 @@ _test_loop:
 _test_error:
     jr _test_error          ; stall here if init failed
 
+
 ; print all characters in ALL_CHARS to the console
 ; B: number of delay calls after each character (0 = no delay)
 ; preserves all registers
@@ -102,14 +103,14 @@ _print_all_done:
 ; 256x256 nop delay; preserves all registers
 delay:
     push bc
-    ld c,0
+    ld c,0 ; outer counter
 _delay_outer:
-    ld b,0
+    ld b,0 ; inner counter
 _delay_inner:
     nop
-    djnz _delay_inner
-    dec c
-    jr nz,_delay_outer
+    djnz _delay_inner ; dec inner counter and loop
+    dec c ; dec outer counter
+    jr nz,_delay_outer ; and loop
     pop bc
     ret
 
