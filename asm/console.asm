@@ -47,6 +47,7 @@
     RA8875_CONSOLE_CURSOR_OFF equ 0x0f
     RA8875_CONSOLE_CURSOR_ON equ 0x0e
 
+
 ; Initialise RA8875 console state.
 ; Hides hardware cursor, zeroes tracking variables, draws initial software cursor.
 ; VOFS is reset by ra8875_initialise; call that first.
@@ -278,12 +279,14 @@ _cursor_xy_position:
 ; Preserves all registers.
 _erase_cursor:
     push af
-    push bc
+    ld a,(RA8875_CURSOR_VISIBLE)
+    or a
+    jr z,_erase_cursor_done     ; cursor hidden: nothing to erase
     call _cursor_xy_position
     ld a,' '
     call ra8875_putchar
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
-    pop bc
+_erase_cursor_done:
     pop af
     ret
 
