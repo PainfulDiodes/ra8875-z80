@@ -55,50 +55,15 @@ test_start:
     ld hl,MSG1
     call console_print
 
-    ld b,1                      ; B=1: one delay per character
-    
+    ld hl,ALL_CHARS
+
 _test_loop:
-    call print_all_chars
+    call console_print_slow
     jr _test_loop           ; loop forever
 
 _test_error:
     jr _test_error          ; stall here if init failed
 
-
-; print all characters in ALL_CHARS to the console
-; B: number of delay calls after each character (0 = no delay)
-; preserves all registers
-print_all_chars:
-    push af
-    push bc
-    push de
-    push hl
-    ld d,b                      ; save delay count
-    ld hl,ALL_CHARS
-_print_all_loop:
-    ld a,(hl)
-    or a                        ; zero = end of array
-    jr z,_print_all_done
-    call ra8875_console_putchar
-    ld b,d
-    inc b
-    dec b                       ; sets Z if delay count is zero
-    jr z,_print_all_next
-_print_all_delay:
-    call delay
-    djnz _print_all_delay
-_print_all_next:
-    inc hl
-    jr _print_all_loop
-_print_all_done:
-    ld a,0x0a                   ; LF
-    call ra8875_console_putchar
-    call ra8875_console_putchar
-    pop hl
-    pop de
-    pop bc
-    pop af
-    ret
 
 ; 256x256 nop delay; preserves all registers
 delay:
@@ -151,10 +116,25 @@ _console_print_end:
     pop hl
     ret
 
+; print a zero-terminated string pointed to by hl to the console - with a delay between chars
+console_print_slow:
+    push hl
+_console_print_slow_loop:
+    ld a,(hl)
+    cp 0
+    jr z,_console_print_slow_end
+    call ra8875_console_putchar
+    call delay
+    inc hl
+    jp _console_print_slow_loop
+_console_print_slow_end:
+    pop hl
+    ret
+
 MSG0:
     defm "ra8875-z80 test program\n\nconsole print: ",0x00
 MSG1:
-    defm "\n\nconsole wrap and scroll: ",0x00
+    defm "console wrap and scroll: ",0x00
 
 ; all characters 0x01-0xff excluding console special characters:
 ;   0x0a LF, 0x0d CR, 0x0e SO (cursor on), 0x0f SI (cursor off)
@@ -178,7 +158,7 @@ ALL_CHARS:
     defb 0xd0,0xd1,0xd2,0xd3,0xd4,0xd5,0xd6,0xd7,0xd8,0xd9,0xda,0xdb,0xdc,0xdd,0xde,0xdf
     defb 0xe0,0xe1,0xe2,0xe3,0xe4,0xe5,0xe6,0xe7,0xe8,0xe9,0xea,0xeb,0xec,0xed,0xee,0xef
     defb 0xf0,0xf1,0xf2,0xf3,0xf4,0xf5,0xf6,0xf7,0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
-    defb 0x00                                   ; zero terminator
+    defb '\n','\n',0x00                                   ; zero terminator
 
 SPLASH:
     defm "####################################################################################################"
