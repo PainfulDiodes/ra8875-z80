@@ -132,9 +132,9 @@ _console_print_slow_end:
     ret
 
 MSG0:
-    defm "ra8875-z80 test program\n\nconsole print: ",0x00
+    defm "ra8875-z80 test program\n\nConsole print: ",0x00
 MSG1:
-    defm "console wrap and scroll: ",0x00
+    defm "Console wrap and scroll: ",0x00
 
 ; all characters 0x01-0xff excluding console special characters:
 ;   0x0a LF, 0x0d CR, 0x0e SO (cursor on), 0x0f SI (cursor off)
