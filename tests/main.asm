@@ -34,7 +34,7 @@ test_ra8875:
     call ra8875_console_putchar
 
     ; fast-print splash screen - skip the console layer and bulk send data
-    ld hl,_splash
+    ld hl,SPLASH
     call fast_print
 
     ; reposition console cursor
@@ -45,14 +45,14 @@ test_ra8875:
     call ra8875_console_putchar
 
     ; print the test message
-    ld hl,_msg0
+    ld hl,MSG0
     call console_print
 
     ; print all printable characters
     ld hl,ALL_CHARS
     call console_print
 
-    ld hl,_msg1
+    ld hl,MSG1
     call console_print
 
     ld b,1                      ; B=1: one delay per character
@@ -150,9 +150,9 @@ _console_print_end:
     pop hl
     ret
 
-_msg0:
+MSG0:
     defm "ra8875-z80 test program\n\nconsole print: ",0x00
-_msg1:
+MSG1:
     defm "\n\nconsole wrap and scroll: ",0x00
 
 ; all characters 0x01-0xff excluding console special characters:
@@ -179,7 +179,7 @@ ALL_CHARS:
     defb 0xf0,0xf1,0xf2,0xf3,0xf4,0xf5,0xf6,0xf7,0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
     defb 0x00                                   ; zero terminator
 
-_splash:
+SPLASH:
     defm "####################################################################################################"
     defm "####################################################################################################"
     defm "####################################################################################################"
