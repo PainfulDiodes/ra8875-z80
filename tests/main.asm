@@ -18,7 +18,7 @@ ENDIF
 
     ORG RAM_START
 
-test_ra8875:
+test_start:
 
     ; bring up the RA8875 hardware
     call ra8875_initialise
