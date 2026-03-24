@@ -1,17 +1,4 @@
-; RA8875 display test
-;
-; Standalone RAM-loaded program.  Assemble with -DRAM_START=<addr> to
-; override the load address (default 0x8000).
-;
-; Sequence:
-;   1. Set CONSOLE_STATUS to BEANBOARD so putchar routes to the RA8875.
-;   2. Initialise the RA8875 hardware (ra8875_initialise).
-;   3. Initialise the console layer (ra8875_console_init).
-;   4. Print a message via puts.
-;   5. Loop forever.
-;
-; Error path: if ra8875_initialise returns NZ the program halts at
-; _test_error for inspection.
+; ra8875-z80 test program
 
     INCLUDE "asm/ra8875.inc"
 
@@ -40,60 +27,33 @@ test_ra8875:
     ; short settling delay
     call _delay
 
-    ; print splash screen
-    ld hl,_splash
-    call _ra8875_puts_fast
-
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
-
+    ; and hide the cursor
     ld a,RA8875_CONSOLE_CURSOR_OFF
     call ra8875_console_putchar
 
-    ld a,20
-    call ra8875_console_cursor_x
-    ld a,10
-    call ra8875_console_cursor_y
+    ; fast-print splash screen - skip the console layer and bulk send data
+    ld hl,_splash
+    call _ra8875_puts_fast
 
-    ld a,0
-    call ra8875_console_cursor_x
+    ; reposition console cursor
     ld a,22
     call ra8875_console_cursor_y
-
+    ; show the cursor
     ld a,RA8875_CONSOLE_CURSOR_ON
     call ra8875_console_putchar
 
-_test_stall:
-    jr _test_stall
-
     ; print the test message
-    ld hl,_msg
-    call ra8875_console_puts
-
-    ; SI - cursor off
-    ld a,0x0f
-    call ra8875_console_putchar
+    ld hl,_msg0
+    call _ra8875_console_puts
 
     ; print all printable characters
     ld hl,_all_chars
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
+    call _ra8875_console_puts
 
-    ; SO - cursor on
-    ld a,'\n'
-    call ra8875_console_putchar
-    call ra8875_console_putchar
-
-    ; SO - cursor on
-    ld a,0x0e
-    call ra8875_console_putchar
+    ld hl,_msg1
+    call _ra8875_console_puts
 
     ld b,1                      ; B=1: one delay per character
     
@@ -177,7 +137,7 @@ _ra8875_puts_fast_end:
     ret
 
 ; print a zero-terminated string pointed to by hl to the console
-ra8875_console_puts:
+_ra8875_console_puts:
     push hl
 _puts_loop:
     ld a,(hl)
@@ -190,8 +150,10 @@ _puts_end:
     pop hl
     ret
 
-_msg:
-    defm "RA8875 test\n\n",0x00
+_msg0:
+    defm "ra8875-z80 test program\n\nconsole print: ",0x00
+_msg1:
+    defm "\n\nconsole wrap and scroll: ",0x00
 
 ; all characters 0x01-0xff excluding console special characters:
 ;   0x0a LF, 0x0d CR, 0x0e SO (cursor on), 0x0f SI (cursor off)
