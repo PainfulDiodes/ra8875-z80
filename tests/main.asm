@@ -25,7 +25,7 @@ test_ra8875:
     jp nz,_test_error
 
     ; short settling delay
-    call _delay
+    call delay
 
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
@@ -35,7 +35,7 @@ test_ra8875:
 
     ; fast-print splash screen - skip the console layer and bulk send data
     ld hl,_splash
-    call _ra8875_puts_fast
+    call fast_print
 
     ; reposition console cursor
     ld a,22
@@ -46,14 +46,14 @@ test_ra8875:
 
     ; print the test message
     ld hl,_msg0
-    call _ra8875_console_puts
+    call console_print
 
     ; print all printable characters
     ld hl,ALL_CHARS
-    call _ra8875_console_puts
+    call console_print
 
     ld hl,_msg1
-    call _ra8875_console_puts
+    call console_print
 
     ld b,1                      ; B=1: one delay per character
     
@@ -65,7 +65,7 @@ _test_error:
     jr _test_error          ; stall here if init failed
 
 ; print all characters in ALL_CHARS to the console
-; B: number of _delay calls after each character (0 = no delay)
+; B: number of delay calls after each character (0 = no delay)
 ; preserves all registers
 print_all_chars:
     push af
@@ -84,7 +84,7 @@ _print_all_loop:
     dec b                       ; sets Z if delay count is zero
     jr z,_print_all_next
 _print_all_delay:
-    call _delay
+    call delay
     djnz _print_all_delay
 _print_all_next:
     inc hl
@@ -100,7 +100,7 @@ _print_all_done:
     ret
 
 ; 256x256 nop delay; preserves all registers
-_delay:
+delay:
     push bc
     ld c,0
 _delay_outer:
@@ -116,37 +116,37 @@ _delay_inner:
 ; print a zero-terminated string pointed to by hl directly to the RA8875.
 ; first char via ra8875_putchar (writes MRWC command), subsequent chars via
 ; ra8875_write_data (MRWC register stays selected). preserves all registers.
-_ra8875_puts_fast:
+fast_print:
     push af
     push hl
     ld a,(hl)
     or a
-    jr z,_ra8875_puts_fast_end  ; empty string
+    jr z,_fast_print_end  ; empty string
     call ra8875_putchar
     inc hl
-_ra8875_puts_fast_loop:
+_fast_print_loop:
     ld a,(hl)
     or a
-    jr z,_ra8875_puts_fast_end
+    jr z,_fast_print_end
     call ra8875_write_data
     inc hl
-    jr _ra8875_puts_fast_loop
-_ra8875_puts_fast_end:
+    jr _fast_print_loop
+_fast_print_end:
     pop hl
     pop af
     ret
 
 ; print a zero-terminated string pointed to by hl to the console
-_ra8875_console_puts:
+console_print:
     push hl
-_puts_loop:
+_console_print_loop:
     ld a,(hl)
     cp 0
-    jr z,_puts_end
+    jr z,_console_print_end
     call ra8875_console_putchar
     inc hl
-    jp _puts_loop
-_puts_end:
+    jp _console_print_loop
+_console_print_end:
     pop hl
     ret
 
