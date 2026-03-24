@@ -1,24 +1,16 @@
-; RA8875 display test
-;
-; Standalone RAM-loaded program.  Assemble with -DRAM_START=<addr> to
-; override the load address (default 0x8000).
-;
-; Sequence:
-;   1. Set CONSOLE_STATUS to BEANBOARD so putchar routes to the RA8875.
-;   2. Initialise the RA8875 hardware (ra8875_initialise).
-;   3. Initialise the console layer (ra8875_console_init).
-;   4. Print a message via puts.
-;   5. Loop forever.
-;
-; Error path: if ra8875_initialise returns NZ the program halts at
-; _test_error for inspection.
+; ra8875-z80 test program
 
     INCLUDE "asm/ra8875.inc"
 
     EXTERN ra8875_initialise
     EXTERN ra8875_console_init
-    EXTERN ra8875_console_puts
     EXTERN ra8875_console_putchar
+    EXTERN ra8875_console_cursor_x
+    EXTERN ra8875_console_cursor_y
+    EXTERN ra8875_putchar
+    EXTERN ra8875_write_data
+    EXTERN RA8875_CONSOLE_CURSOR_OFF
+    EXTERN RA8875_CONSOLE_CURSOR_ON
 
 IFNDEF RAM_START
 RAM_START equ 0x8000
@@ -26,112 +18,128 @@ ENDIF
 
     ORG RAM_START
 
-test_ra8875:
+test_start:
 
     ; bring up the RA8875 hardware
     call ra8875_initialise
     jp nz,_test_error
 
-    ; short settling delay
-    call _delay
+    ; RA8875 settling delay
+    call delay
 
     ; initialise the console layer (cursor state, software cursor)
     call ra8875_console_init
+    ; and hide the cursor
+    ld a,RA8875_CONSOLE_CURSOR_OFF
+    call ra8875_console_putchar
+
+    ; fast-print splash screen - skip the console layer and bulk send data
+    ld hl,SPLASH
+    call fast_print
+
+    ; reposition console cursor
+    ld a,22
+    call ra8875_console_cursor_y
+    ; show the cursor
+    ld a,RA8875_CONSOLE_CURSOR_ON
+    call ra8875_console_putchar
 
     ; print the test message
-    ld hl,_msg
-    call ra8875_console_puts
-
-    ; SI - cursor off
-    ld a,0x0f
-    call ra8875_console_putchar
+    ld hl,MSG0
+    call console_print
 
     ; print all printable characters
-    ld hl,_all_chars
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
-    call ra8875_console_puts
+    ld hl,ALL_CHARS
+    call console_print
 
-    ; SO - cursor on
-    ld a,'\n'
-    call ra8875_console_putchar
-    call ra8875_console_putchar
+    ld hl,MSG1
+    call console_print
 
-    ; SO - cursor on
-    ld a,0x0e
-    call ra8875_console_putchar
+    ld hl,ALL_CHARS
 
-    ld b,1                      ; B=1: one delay per character
-    
 _test_loop:
-    call _print_all_chars
+    call console_print_slow
     jr _test_loop           ; loop forever
 
 _test_error:
     jr _test_error          ; stall here if init failed
 
-; print all characters in _all_chars to the console
-; B: number of _delay calls after each character (0 = no delay)
-; preserves all registers
-_print_all_chars:
-    push af
+
+; 256x256 nop delay; preserves all registers
+delay:
     push bc
-    push de
-    push hl
-    ld d,b                      ; save delay count
-    ld hl,_all_chars
-_print_all_loop:
-    ld a,(hl)
-    or a                        ; zero = end of array
-    jr z,_print_all_done
-    call ra8875_console_putchar
-    ld b,d
-    inc b
-    dec b                       ; sets Z if delay count is zero
-    jr z,_print_all_next
-_print_all_delay:
-    call _delay
-    djnz _print_all_delay
-_print_all_next:
-    inc hl
-    jr _print_all_loop
-_print_all_done:
-    ld a,0x0a                   ; LF
-    call ra8875_console_putchar
-    call ra8875_console_putchar
-    pop hl
-    pop de
+    ld c,0 ; outer counter
+_delay_outer:
+    ld b,0 ; inner counter
+_delay_inner:
+    nop
+    djnz _delay_inner ; dec inner counter and loop
+    dec c ; dec outer counter
+    jr nz,_delay_outer ; and loop
     pop bc
+    ret
+
+; print a zero-terminated string pointed to by hl directly to the RA8875.
+; first char via ra8875_putchar (writes MRWC command), subsequent chars via
+; ra8875_write_data (MRWC register stays selected). preserves all registers.
+fast_print:
+    push af
+    push hl
+    ld a,(hl)
+    or a
+    jr z,_fast_print_end  ; empty string
+    call ra8875_putchar
+    inc hl
+_fast_print_loop:
+    ld a,(hl)
+    or a
+    jr z,_fast_print_end
+    call ra8875_write_data
+    inc hl
+    jr _fast_print_loop
+_fast_print_end:
+    pop hl
     pop af
     ret
 
-; 256x256 nop delay; preserves all registers
-_delay:
-    push bc
-    ld c,0
-_delay_outer:
-    ld b,0
-_delay_inner:
-    nop
-    djnz _delay_inner
-    dec c
-    jr nz,_delay_outer
-    pop bc
+; print a zero-terminated string pointed to by hl to the console
+console_print:
+    push hl
+_console_print_loop:
+    ld a,(hl)
+    cp 0
+    jr z,_console_print_end
+    call ra8875_console_putchar
+    inc hl
+    jp _console_print_loop
+_console_print_end:
+    pop hl
     ret
 
-_msg:
-    defm "RA8875 test\n\n",0x00
+; print a zero-terminated string pointed to by hl to the console - with a delay between chars
+console_print_slow:
+    push hl
+_console_print_slow_loop:
+    ld a,(hl)
+    cp 0
+    jr z,_console_print_slow_end
+    call ra8875_console_putchar
+    call delay
+    inc hl
+    jp _console_print_slow_loop
+_console_print_slow_end:
+    pop hl
+    ret
+
+MSG0:
+    defm "ra8875-z80 test program\n\nConsole print: ",0x00
+MSG1:
+    defm "Console wrap and scroll: ",0x00
 
 ; all characters 0x01-0xff excluding console special characters:
 ;   0x0a LF, 0x0d CR, 0x0e SO (cursor on), 0x0f SI (cursor off)
 ; zero-terminated so ra8875_console_puts or _print_all_chars can use it directly
-_all_chars:
+ALL_CHARS:
     defb 0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09
     defb 0x0b,0x0c                              ; skip 0x0a LF
                                                 ; skip 0x0d CR, 0x0e SO, 0x0f SI
@@ -150,4 +158,28 @@ _all_chars:
     defb 0xd0,0xd1,0xd2,0xd3,0xd4,0xd5,0xd6,0xd7,0xd8,0xd9,0xda,0xdb,0xdc,0xdd,0xde,0xdf
     defb 0xe0,0xe1,0xe2,0xe3,0xe4,0xe5,0xe6,0xe7,0xe8,0xe9,0xea,0xeb,0xec,0xed,0xee,0xef
     defb 0xf0,0xf1,0xf2,0xf3,0xf4,0xf5,0xf6,0xf7,0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
+    defb '\n','\n',0x00                                   ; zero terminator
+
+SPLASH:
+    defm "####################################################################################################"
+    defm "####################################################################################################"
+    defm "####################################################################################################"
+    defm "######                                                                                        ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ            888888888888888               0000000000000       ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ          8888888888888888888           00000000000000000     ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ         88888888     88888888         0000000     0000000    ######"
+    defm "######                ZZZZZZZZZ          8888888       8888888        0000000       0000000   ######"
+    defm "######              ZZZZZZZZZ            8888888       8888888        0000000       0000000   ######"
+    defm "######            ZZZZZZZZZ               8888888888888888888         0000000       0000000   ######"
+    defm "######          ZZZZZZZZZ                   888888888888888           0000000       0000000   ######"
+    defm "######        ZZZZZZZZZ                   8888888888888888888         0000000       0000000   ######"
+    defm "######      ZZZZZZZZZ                    8888888       8888888        0000000       0000000   ######"
+    defm "######    ZZZZZZZZZ                      8888888       8888888        0000000       0000000   ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ         88888888     88888888         0000000     0000000    ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ          8888888888888888888           00000000000000000     ######"
+    defm "######   ZZZZZZZZZZZZZZZZZZZZZZZ            888888888888888               0000000000000       ######"
+    defm "######                                                                                        ######"
+    defm "####################################################################################################"
+    defm "####################################################################################################"
+    defm "####################################################################################################"
     defb 0x00                                   ; zero terminator

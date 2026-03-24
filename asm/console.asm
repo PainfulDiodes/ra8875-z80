@@ -9,6 +9,8 @@
 ;   ra8875_console_init     - initialise state; call after ra8875_initialise
 ;   ra8875_console_putchar  - write character in A to console
 ;   ra8875_console_puts     - write zero-terminated string pointed to by HL
+;   ra8875_console_cursor_x - set cursor column to A (0..RA8875_COLS-1)
+;   ra8875_console_cursor_y - set cursor row to A (0..RA8875_ROWS-1, logical)
 ;
 ; Special characters recognised by ra8875_console_putchar:
 ;   0x0a  LF  - newline: erase cursor, advance to next row (scrolls if needed)
@@ -20,8 +22,12 @@
     INCLUDE "ra8875.inc"
 
     PUBLIC ra8875_console_putchar
-    PUBLIC ra8875_console_puts
     PUBLIC ra8875_console_init
+    PUBLIC ra8875_console_cursor_x
+    PUBLIC ra8875_console_cursor_y
+
+    PUBLIC RA8875_CONSOLE_CURSOR_OFF
+    PUBLIC RA8875_CONSOLE_CURSOR_ON
 
     EXTERN ra8875_putchar
     EXTERN ra8875_cursor_x
@@ -36,6 +42,11 @@
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
     RA8875_SCROLL_TOP     equ RA8875_RAMSTART + 2  ; 1-byte physical row at top of display
     RA8875_CURSOR_VISIBLE equ RA8875_RAMSTART + 3  ; 1-byte non-zero = cursor visible, zero = cursor hidden
+
+    ; control characters
+    RA8875_CONSOLE_CURSOR_OFF equ 0x0f
+    RA8875_CONSOLE_CURSOR_ON equ 0x0e
+
 
 ; Initialise RA8875 console state.
 ; Hides hardware cursor, zeroes tracking variables, draws initial software cursor.
@@ -111,6 +122,39 @@ _putchar_done:
     ld a,b
     pop hl
     pop de
+    pop bc
+    pop af
+    ret
+
+
+; Set console cursor column. A = column (0..RA8875_COLS-1).
+; Erases the cursor at the current position, updates the column, redraws.
+; Preserves all registers.
+ra8875_console_cursor_x:
+    call _erase_cursor
+    ld (RA8875_CURSOR_COL),a
+    call _draw_cursor
+    ret
+
+
+; Set console cursor row. A = logical row (0 = top of visible area, 0..RA8875_ROWS-1).
+; Converts logical row to physical row accounting for scroll_top.
+; Erases the cursor at the current position, updates the row, redraws.
+; Preserves all registers.
+ra8875_console_cursor_y:
+    push af
+    push bc
+    call _erase_cursor
+    ; convert logical row in A to physical: (scroll_top + A) % RA8875_ROWS
+    ld b,a
+    ld a,(RA8875_SCROLL_TOP)
+    add a,b
+    cp RA8875_ROWS
+    jr c,_cursor_y_no_wrap
+    sub RA8875_ROWS
+_cursor_y_no_wrap:
+    ld (RA8875_CURSOR_ROW),a
+    call _draw_cursor
     pop bc
     pop af
     ret
@@ -235,12 +279,14 @@ _cursor_xy_position:
 ; Preserves all registers.
 _erase_cursor:
     push af
-    push bc
+    ld a,(RA8875_CURSOR_VISIBLE)
+    or a
+    jr z,_erase_cursor_done     ; cursor hidden: nothing to erase
     call _cursor_xy_position
     ld a,' '
     call ra8875_putchar
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
-    pop bc
+_erase_cursor_done:
     pop af
     ret
 
@@ -282,19 +328,4 @@ _draw_cursor:
 _draw_cursor_done:
     pop bc
     pop af
-    ret
-
-
-; print a zero-terminated string pointed to by hl to the console
-ra8875_console_puts:
-    push hl
-_puts_loop:
-    ld a,(hl)
-    cp 0
-    jr z,_puts_end
-    call ra8875_console_putchar
-    inc hl
-    jp _puts_loop
-_puts_end:
-    pop hl
     ret
