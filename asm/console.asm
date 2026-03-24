@@ -26,6 +26,9 @@
     PUBLIC ra8875_console_cursor_x
     PUBLIC ra8875_console_cursor_y
 
+    PUBLIC RA8875_CONSOLE_CURSOR_OFF
+    PUBLIC RA8875_CONSOLE_CURSOR_ON
+
     EXTERN ra8875_putchar
     EXTERN ra8875_cursor_x
     EXTERN ra8875_cursor_y
@@ -39,6 +42,10 @@
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
     RA8875_SCROLL_TOP     equ RA8875_RAMSTART + 2  ; 1-byte physical row at top of display
     RA8875_CURSOR_VISIBLE equ RA8875_RAMSTART + 3  ; 1-byte non-zero = cursor visible, zero = cursor hidden
+
+    ; control characters
+    RA8875_CONSOLE_CURSOR_OFF equ 0x0f
+    RA8875_CONSOLE_CURSOR_ON equ 0x0e
 
 ; Initialise RA8875 console state.
 ; Hides hardware cursor, zeroes tracking variables, draws initial software cursor.
