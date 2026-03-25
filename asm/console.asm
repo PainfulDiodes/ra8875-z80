@@ -92,8 +92,7 @@ ra8875_console_putchar:
     cp 0x7f                     ; DEL - backspace key on most terminals?
     jr z,_putchar_backspace
     ; character overwrites software cursor at current position; RA8875 auto-advances
-_putchar_backspace:
-    ld a,'<'                    ; substitute '<' as a test placeholder
+_putchar_printable:
     call ra8875_putchar
     ld hl,RA8875_CURSOR_COL
     inc (hl)
@@ -126,6 +125,9 @@ _putchar_newline:
     ld (RA8875_CURSOR_COL),a
     call _advance_line
     jr _putchar_done
+_putchar_backspace:
+    ld a,'<'                    ; substitute '<' as a test placeholder
+    jr _putchar_printable
 _putchar_done:
     ld a,b
     pop hl
