@@ -136,11 +136,7 @@ _putchar_backspace:
     ld a,(RA8875_CURSOR_COL)
     dec a
     ld (RA8875_CURSOR_COL),a
-    ; position RA8875, write space to erase the previous character
-    call _cursor_xy_position
-    ld a,' '
-    call ra8875_putchar
-    ; draw cursor at new position
+    ; draw cursor at new position, overwriting the previous character
     call _draw_cursor
     jr _putchar_done
 _putchar_done:
