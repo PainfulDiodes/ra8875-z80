@@ -13,12 +13,12 @@
 ;   ra8875_console_cursor_y - set cursor row to A (0..RA8875_ROWS-1, logical)
 ;
 ; Special characters recognised by ra8875_console_putchar:
-;   0x08  BS  - backspace: substituted with '<' (test placeholder)
+;   0x08  BS  - backspace: move cursor back one column, erase character (stops at col 0)
 ;   0x0a  LF  - newline: erase cursor, advance to next row (scrolls if needed)
 ;   0x0d  CR  - same as LF
 ;   0x0e  SO  - cursor on:  make software cursor visible
 ;   0x0f  SI  - cursor off: hide software cursor
-;   0x7f  DEL - backspace key on most terminals: substituted with '<' (test placeholder)
+;   0x7f  DEL - backspace key on most terminals: same as BS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     INCLUDE "ra8875.inc"
@@ -126,8 +126,23 @@ _putchar_newline:
     call _advance_line
     jr _putchar_done
 _putchar_backspace:
-    ld a,'<'                    ; substitute '<' as a test placeholder
-    jr _putchar_printable
+    ; if at start of line, nothing to do
+    ld a,(RA8875_CURSOR_COL)
+    or a
+    jr z,_putchar_done
+    ; erase the cursor block at current position
+    call _erase_cursor
+    ; move back one column
+    ld a,(RA8875_CURSOR_COL)
+    dec a
+    ld (RA8875_CURSOR_COL),a
+    ; position RA8875, write space to erase the previous character
+    call _cursor_xy_position
+    ld a,' '
+    call ra8875_putchar
+    ; draw cursor at new position
+    call _draw_cursor
+    jr _putchar_done
 _putchar_done:
     ld a,b
     pop hl
