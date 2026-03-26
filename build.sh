@@ -27,7 +27,7 @@ for target in beanboard beanboardspi; do
         "$REPO_DIR/asm/ra8875.asm" \
         "$REPO_DIR/targets/${target}.asm" \
         "$REPO_DIR/asm/console.asm" \
-        "$REPO_DIR/targets/environment.asm"
+        "$REPO_DIR/targets/system.asm"
 
     z88dk-appmake +hex --org "${RAM_START}" \
         -b "$OUTDIR/${target}.bin" \

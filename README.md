@@ -1,4 +1,4 @@
-# RA8875 Z80 v0.2
+# RA8875 Z80 v0.3
 
 Z80 library driver for the RA8875 TFT display controller (builds with [z88dk](https://github.com/z88dk/z88dk)).
 
@@ -21,7 +21,7 @@ The RA8875 board has an SPI interface. The library includes 2 example transports
 - **targets/beanboardspi.asm** — assumes a hardware SPI ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck)
 - **targets/beanboard.asm** — bit-bang SPI via GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard))
 
-There are some software delays used in the driver. These assume a 10MHz Z80 CPU and will likely need adjusting for other clock speeds (TODO: extract delay paramters as a CPU config in the environment.asm module)
+There are some software delays used in the driver. These assume a 10MHz Z80 CPU and will likely need adjusting for other clock speeds (TODO: extract delay paramters as a CPU config in the system.asm module)
 
 ## Files
 
@@ -32,7 +32,7 @@ There are some software delays used in the driver. These assume a 10MHz Z80 CPU 
 | `asm/console.asm`          | Optional console layer (scrolling and software cursor) |
 | `targets/beanboardspi.asm` | Parallel transport (hardware SPI) for BeanBoardSPI     |
 | `targets/beanboard.asm`    | Bit-bang SPI transport for BeanBoard GPIO              |
-| `targets/environment.asm`  | RAM and port assignments                               |
+| `targets/system.asm`       | RAM and port assignments                               |
 | `tests/main.asm`           | Example test harness                                   |
 
 ## Building
@@ -43,7 +43,7 @@ There are some software delays used in the driver. These assume a 10MHz Z80 CPU 
 
 Requires [z88dk](https://github.com/z88dk/z88dk). Assembles both targets
 (`beanboard` and `beanboardspi`) into `output/`, linking the test program,
-driver, console, and environment modules.
+driver, console, and system modules.
 
 An optional RAM start address can be passed:
 
