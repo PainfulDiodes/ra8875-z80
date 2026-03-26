@@ -1,7 +1,9 @@
 # v0.2.0
 
-* Console backspace: `ra8875_console_putchar` handles 0x08 (BS) and 0x7f (DEL, sent by most terminal emulators) identically
-  * Moves cursor back one column and erases the character; silently ignored at column 0
+* Console backspace: `ra8875_console_putchar` 
+  * Handles 0x08 (BS) and 0x7f (DEL, sent by most terminal emulators) identically
+  * Moves cursor back one column erasing the character
+  * Silently ignored at column 0
 
 # v0.1.0
 
