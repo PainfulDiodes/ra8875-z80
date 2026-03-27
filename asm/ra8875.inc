@@ -312,6 +312,43 @@ RA8875_FGCR0 equ 0x63
 RA8875_FGCR1 equ 0x64
 RA8875_FGCR2 equ 0x65
 
+; Colour index constants for ra8875_set_foreground_colour / ra8875_set_background_colour
+; Pass one of these in A before calling the function.
+RA8875_COL_BLACK   equ 0
+RA8875_COL_RED     equ 1
+RA8875_COL_GREEN   equ 2
+RA8875_COL_BLUE    equ 3
+RA8875_COL_YELLOW  equ 4
+RA8875_COL_CYAN    equ 5
+RA8875_COL_MAGENTA equ 6
+RA8875_COL_WHITE   equ 7
+
+; RGB565 component values for each colour (R: 5-bit 0-31, G: 6-bit 0-63, B: 5-bit 0-31)
+RA8875_COL_BLACK_R   equ 0x00
+RA8875_COL_BLACK_G   equ 0x00
+RA8875_COL_BLACK_B   equ 0x00
+RA8875_COL_RED_R     equ 0x1F
+RA8875_COL_RED_G     equ 0x00
+RA8875_COL_RED_B     equ 0x00
+RA8875_COL_GREEN_R   equ 0x00
+RA8875_COL_GREEN_G   equ 0x3F
+RA8875_COL_GREEN_B   equ 0x00
+RA8875_COL_BLUE_R    equ 0x00
+RA8875_COL_BLUE_G    equ 0x00
+RA8875_COL_BLUE_B    equ 0x1F
+RA8875_COL_YELLOW_R  equ 0x1F
+RA8875_COL_YELLOW_G  equ 0x3F
+RA8875_COL_YELLOW_B  equ 0x00
+RA8875_COL_CYAN_R    equ 0x00
+RA8875_COL_CYAN_G    equ 0x3F
+RA8875_COL_CYAN_B    equ 0x1F
+RA8875_COL_MAGENTA_R equ 0x1F
+RA8875_COL_MAGENTA_G equ 0x00
+RA8875_COL_MAGENTA_B equ 0x1F
+RA8875_COL_WHITE_R   equ 0x1F
+RA8875_COL_WHITE_G   equ 0x3F
+RA8875_COL_WHITE_B   equ 0x1F
+
 ; REG[88h] PLL Control Register 1 (PLLC1)
 RA8875_PLLC1 equ 0x88 
 RA8875_PLLC1_PLLDIV1 equ 0x00

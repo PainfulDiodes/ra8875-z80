@@ -27,6 +27,8 @@
     PUBLIC ra8875_memory_read_write_command
     PUBLIC ra8875_putchar
     PUBLIC ra8875_puts
+    PUBLIC ra8875_set_foreground_colour
+    PUBLIC ra8875_set_background_colour
 
 ; Transport interface (EXTERN - provided by transport module):
 ;   ra8875_reset_assert  - Assert hardware RESET of the controller
@@ -524,6 +526,76 @@ _ra8875_puts_loop:
     inc hl
     jr _ra8875_puts_loop
 _ra8875_puts_done:
+    pop bc
+    pop af
+    ret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; colour setting
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Lookup table: 3 bytes per entry (R, G, B), indexed by RA8875_COL_* constants.
+_ra8875_colour_table:
+    defb RA8875_COL_BLACK_R,   RA8875_COL_BLACK_G,   RA8875_COL_BLACK_B
+    defb RA8875_COL_RED_R,     RA8875_COL_RED_G,     RA8875_COL_RED_B
+    defb RA8875_COL_GREEN_R,   RA8875_COL_GREEN_G,   RA8875_COL_GREEN_B
+    defb RA8875_COL_BLUE_R,    RA8875_COL_BLUE_G,    RA8875_COL_BLUE_B
+    defb RA8875_COL_YELLOW_R,  RA8875_COL_YELLOW_G,  RA8875_COL_YELLOW_B
+    defb RA8875_COL_CYAN_R,    RA8875_COL_CYAN_G,    RA8875_COL_CYAN_B
+    defb RA8875_COL_MAGENTA_R, RA8875_COL_MAGENTA_G, RA8875_COL_MAGENTA_B
+    defb RA8875_COL_WHITE_R,   RA8875_COL_WHITE_G,   RA8875_COL_WHITE_B
+
+; Private: write R/G/B from colour table to three consecutive registers starting at C.
+; A = colour constant (RA8875_COL_*); C = base register (RA8875_FGCR0 or RA8875_BGCR0)
+; Preserves all registers.
+; C = base register (RA8875_FGCR0 or RA8875_BGCR0); A = colour constant (RA8875_COL_*)
+; Preserves DE, HL. Does not preserve AF or BC (both are input parameters).
+_ra8875_set_colour:
+    push de
+    push hl
+    ld hl,_ra8875_colour_table
+    ld d,a          ; stash colour index in D
+    add a,a         ; A = index * 2
+    add a,d         ; A = index * 3
+    ld e,a
+    ld d,0
+    add hl,de       ; HL = &table[index * 3]
+    ld a,c
+    ld b,(hl)
+    call ra8875_write_reg   ; write R
+    inc hl
+    inc c
+    ld a,c
+    ld b,(hl)
+    call ra8875_write_reg   ; write G
+    inc hl
+    inc c
+    ld a,c
+    ld b,(hl)
+    call ra8875_write_reg   ; write B
+    pop hl
+    pop de
+    ret
+
+; Set text foreground colour.
+; A = colour constant (RA8875_COL_*). Preserves all registers.
+ra8875_set_foreground_colour:
+    push af
+    push bc
+    ld c,RA8875_FGCR0
+    call _ra8875_set_colour
+    pop bc
+    pop af
+    ret
+
+; Set text background colour.
+; A = colour constant (RA8875_COL_*). Preserves all registers.
+ra8875_set_background_colour:
+    push af
+    push bc
+    ld c,RA8875_BGCR0
+    call _ra8875_set_colour
     pop bc
     pop af
     ret

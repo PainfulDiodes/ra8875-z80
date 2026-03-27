@@ -2,6 +2,11 @@
 
 * Rename environment.asm to system.asm for consistency with marvin
 * Export `RA8875_RAMSIZE equ 4` as PUBLIC from `console.asm`; host system can EXTERN this to cascade its own RAM allocation immediately after the RA8875 variables block
+* Colour support:
+  * Two new public functions in `ra8875.asm`: `ra8875_set_foreground_colour`, `ra8875_set_background_colour` — pass colour constant in A, both preserve all registers
+  * Eight colour constants added to `ra8875.inc`: `RA8875_COL_BLACK` through `RA8875_COL_WHITE` (0–7)
+  * RGB565 component constants added to `ra8875.inc`: `RA8875_COL_*_R/G/B` for all eight colours
+  * `ra8875_console_init` sets foreground colour to green on startup
 
 # v0.2.0
 

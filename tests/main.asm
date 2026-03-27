@@ -11,6 +11,8 @@
     EXTERN ra8875_write_data
     EXTERN RA8875_CONSOLE_CURSOR_OFF
     EXTERN RA8875_CONSOLE_CURSOR_ON
+    EXTERN ra8875_set_foreground_colour
+
 
 IFNDEF RAM_START
 RAM_START equ 0x8000
@@ -33,9 +35,19 @@ test_start:
     ld a,RA8875_CONSOLE_CURSOR_OFF
     call ra8875_console_putchar
 
+    ; set foreground colour
+    ld a,RA8875_COL_YELLOW
+    call ra8875_set_foreground_colour
+
+
     ; fast-print splash screen - skip the console layer and bulk send data
     ld hl,SPLASH
     call fast_print
+
+
+    ; set foreground colour
+    ld a,RA8875_COL_GREEN
+    call ra8875_set_foreground_colour
 
     ; reposition console cursor
     ld a,22
