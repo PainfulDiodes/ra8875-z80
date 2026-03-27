@@ -1,6 +1,7 @@
 # v0.3.0 WIP
 
 * Rename environment.asm to system.asm for consistency with marvin
+* Export `RA8875_RAMSIZE equ 4` as PUBLIC from `console.asm`; host system can EXTERN this to cascade its own RAM allocation immediately after the RA8875 variables block
 
 # v0.2.0
 
