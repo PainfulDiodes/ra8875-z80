@@ -30,24 +30,15 @@ test_start:
     call delay
 
     ; initialise the console layer (cursor state, software cursor)
+    ; sets the default foreground colour
     call ra8875_console_init
     ; and hide the cursor
     ld a,RA8875_CONSOLE_CURSOR_OFF
     call ra8875_console_putchar
 
-    ; set foreground colour
-    ld a,RA8875_COL_YELLOW
-    call ra8875_set_foreground_colour
-
-
     ; fast-print splash screen - skip the console layer and bulk send data
     ld hl,SPLASH
     call fast_print
-
-
-    ; set foreground colour
-    ld a,RA8875_COL_GREEN
-    call ra8875_set_foreground_colour
 
     ; reposition console cursor
     ld a,22
@@ -56,16 +47,28 @@ test_start:
     ld a,RA8875_CONSOLE_CURSOR_ON
     call ra8875_console_putchar
 
+    ld a,RA8875_COL_YELLOW
+    call ra8875_set_foreground_colour
+
     ; print the test message
     ld hl,MSG0
     call console_print
+
+    ld a,RA8875_COL_GREEN
+    call ra8875_set_foreground_colour
 
     ; print all printable characters
     ld hl,ALL_CHARS
     call console_print
 
+    ld a,RA8875_COL_YELLOW
+    call ra8875_set_foreground_colour
+
     ld hl,MSG1
     call console_print
+
+    ld a,RA8875_COL_GREEN
+    call ra8875_set_foreground_colour
 
     ld hl,ALL_CHARS
 
