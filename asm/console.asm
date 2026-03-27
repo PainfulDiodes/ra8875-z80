@@ -38,12 +38,14 @@
     EXTERN ra8875_read_reg
 
     EXTERN RA8875_RAMSTART
+    PUBLIC RA8875_RAMSIZE
 
-    ; RAM variables 4 bytes: col, row, scroll_top, cursor_visible
+    ; RAM variables: col, row, scroll_top, cursor_visible
     RA8875_CURSOR_COL     equ RA8875_RAMSTART + 0  ; 1-byte column (0..RA8875_COLS-1)
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
     RA8875_SCROLL_TOP     equ RA8875_RAMSTART + 2  ; 1-byte physical row at top of display
     RA8875_CURSOR_VISIBLE equ RA8875_RAMSTART + 3  ; 1-byte non-zero = cursor visible, zero = cursor hidden
+    RA8875_RAMSIZE        equ 4                    ; bytes reserved for RA8875 console variables
 
     ; control characters
     RA8875_CONSOLE_CURSOR_OFF equ 0x0f
