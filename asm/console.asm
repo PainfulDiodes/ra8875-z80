@@ -36,6 +36,7 @@
     EXTERN ra8875_cursor_y
     EXTERN ra8875_write_reg
     EXTERN ra8875_read_reg
+    EXTERN ra8875_set_foreground_colour
 
     EXTERN RA8875_RAMSTART
     PUBLIC RA8875_RAMSIZE
@@ -70,6 +71,9 @@ ra8875_console_init:
     ld (RA8875_SCROLL_TOP),a
     ld a,1
     ld (RA8875_CURSOR_VISIBLE),a
+    ; set foreground colour to green
+    ld a,RA8875_COL_GREEN
+    call ra8875_set_foreground_colour
     ; draw initial software cursor at (0,0)
     call _draw_cursor
     ret
