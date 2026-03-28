@@ -41,6 +41,9 @@
     EXTERN RA8875_RAMSTART
     PUBLIC RA8875_RAMSIZE
 
+    EXTERN CAPS_LOCK_STATE
+    PUBLIC ra8875_console_refresh_cursor
+
     ; RAM variables: col, row, scroll_top, cursor_visible
     RA8875_CURSOR_COL     equ RA8875_RAMSTART + 0  ; 1-byte column (0..RA8875_COLS-1)
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
@@ -69,6 +72,7 @@ ra8875_console_init:
     ld (RA8875_CURSOR_COL),a
     ld (RA8875_CURSOR_ROW),a
     ld (RA8875_SCROLL_TOP),a
+    ld (CAPS_LOCK_STATE),a
     ld a,1
     ld (RA8875_CURSOR_VISIBLE),a
     ; set foreground colour to green
@@ -329,16 +333,32 @@ _draw_cursor:
     ld a,(RA8875_CURSOR_VISIBLE)
     or a
     jr z,_draw_cursor_done      ; cursor hidden: skip visual rendering
-    ; set background to white for solid block cursor
+    ; cursor colour: green (caps off) or white (caps on)
+    ld a,(CAPS_LOCK_STATE)
+    or a
+    jr nz,_draw_cursor_white
+_draw_cursor_green:
     ld a,RA8875_BGCR0
-    ld b,0x1f
+    ld b,RA8875_COL_GREEN_R
     call ra8875_write_reg
     ld a,RA8875_BGCR1
-    ld b,0x3f
+    ld b,RA8875_COL_GREEN_G
     call ra8875_write_reg
     ld a,RA8875_BGCR2
-    ld b,0x1f
+    ld b,RA8875_COL_GREEN_B
     call ra8875_write_reg
+    jr _draw_cursor_write
+_draw_cursor_white:
+    ld a,RA8875_BGCR0
+    ld b,RA8875_COL_WHITE_R
+    call ra8875_write_reg
+    ld a,RA8875_BGCR1
+    ld b,RA8875_COL_WHITE_G
+    call ra8875_write_reg
+    ld a,RA8875_BGCR2
+    ld b,RA8875_COL_WHITE_B
+    call ra8875_write_reg
+_draw_cursor_write:
     ld a,' '
     call ra8875_putchar
     ; restore background to black
@@ -354,5 +374,20 @@ _draw_cursor:
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
 _draw_cursor_done:
     pop bc
+    pop af
+    ret
+
+
+; Refresh cursor colour to reflect current CAPS_LOCK_STATE.
+; Only redraws if cursor is currently visible.
+; Call after toggling caps lock state.
+; Preserves all registers.
+ra8875_console_refresh_cursor:
+    push af
+    ld a,(RA8875_CURSOR_VISIBLE)
+    or a
+    jr z,_refresh_cursor_done
+    call _draw_cursor
+_refresh_cursor_done:
     pop af
     ret

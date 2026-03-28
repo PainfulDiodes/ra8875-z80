@@ -7,6 +7,10 @@
   * Eight colour constants added to `ra8875.inc`: `RA8875_COL_BLACK` through `RA8875_COL_WHITE` (0–7)
   * RGB565 component constants added to `ra8875.inc`: `RA8875_COL_*_R/G/B` for all eight colours
   * `ra8875_console_init` sets foreground colour to green on startup
+* Caps lock visual indicator:
+  * `_draw_cursor` checks `CAPS_LOCK_STATE` (an EXTERN byte supplied by the host) to select cursor background colour: green when caps lock is off, white when on
+  * New public function `ra8875_console_refresh_cursor` — redraws the cursor at the current position if visible; call after toggling caps lock state to update the indicator immediately
+  * `ra8875_console_init` zeroes `CAPS_LOCK_STATE` on startup
 
 # v0.2.0
 
