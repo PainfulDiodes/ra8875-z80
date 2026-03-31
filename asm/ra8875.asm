@@ -73,7 +73,8 @@ _ra8875_reg_settle_delay_loop:
     pop bc
     ret
 
-; 0x8000 (32768) gives ~100ms at 10MHz - same as entry_beandeck.asm boot delay
+; 0x8000 (32768) gives ~100ms at 10MHz - same as entry_beandeck.asm boot delay.
+; Used twice in ra8875_reset: once while RESET is asserted, once after deassert.
 RA8875_RESET_DELAY_VAL equ 0x8000
 
 ; Timeout for ra8875_clear_window poll loop.
@@ -94,11 +95,14 @@ _ra8875_reset_delay_loop:
     pop bc
     ret
 
-; Hardware reset - assert RESET, delay, then deassert
+; Hardware reset - assert RESET, delay, deassert, then wait for chip to stabilise.
+; The post-deassert delay matches the Adafruit RA8875 library (hardReset delay(100)):
+; the RA8875 requires time after RESET is released before it will respond to SPI.
 ra8875_reset:
     call ra8875_reset_assert
-    call _ra8875_reset_delay
+    call _ra8875_reset_delay        ; 100ms RESET asserted
     call ra8875_reset_deassert
+    call _ra8875_reset_delay        ; 100ms settle after deassert
     ret
 
 
