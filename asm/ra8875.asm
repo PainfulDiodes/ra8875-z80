@@ -50,9 +50,12 @@ INCLUDE "ra8875.inc"
 ; common timing and reset
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; 0x0e was the minimum needed for PLLC1/2 init with a 10MHz Z80 clock
-; 0x0092 (146) gives ~442us at 10MHz (slightly longer than the original 8-bit loop)
-RA8875_SETTLE_DELAY_VAL equ 0x0092
+; RA8875 datasheet requires >1ms after writing PLLC1/PLLC2 for PLL lock.
+; Each loop iteration: nop(4) + dec bc(6) + ld a,b(4) + or c(4) + jr nz(12) = 30 cycles.
+; At 10MHz: 30 cycles = 3us/iteration -> 0x0200 (512) iterations ~= 1.5ms.
+; If the CPU clock changes, recalculate: iterations = ceil(1500 / (30 / clock_mhz))
+; Keep at least 1ms margin above the PLL lock time.
+RA8875_SETTLE_DELAY_VAL equ 0x0200
 
 ; Register settling delay - used after writing timing registers:
 ;   PLLC1 (_ra8875_pllc1_init)
@@ -72,6 +75,11 @@ _ra8875_reg_settle_delay_loop:
 
 ; 0x8000 (32768) gives ~100ms at 10MHz - same as entry_beandeck.asm boot delay
 RA8875_RESET_DELAY_VAL equ 0x8000
+
+; Timeout for ra8875_clear_window poll loop.
+; 0x8000 (32768) iterations ~= 100ms at 10MHz (same loop body as reset delay).
+; If the CPU clock changes, recalculate: iterations = ceil(100000 / (30 / clock_mhz))
+RA8875_MCLR_TIMEOUT equ 0x8000
 
 ; Reset delay ~100ms at 10MHz
 _ra8875_reset_delay:
@@ -313,16 +321,32 @@ _ra8875_vertical_active_window_init:
 ra8875_clear_window:
     push af
     push bc
+    push de
     ld a,RA8875_MCLR
     ld b,RA8875_MCLR_START | RA8875_MCLR_FULL
     call ra8875_write_reg
+    ld de,RA8875_MCLR_TIMEOUT
     ; wait for clear to complete
 _ra8875_clear_wait:
+    ld a,RA8875_MCLR            ; reload register address: ra8875_read_reg destroys A
     call ra8875_read_reg
-    cp RA8875_MCLR_READSTATUS
-    jr z,_ra8875_clear_wait
+    and RA8875_MCLR_READSTATUS  ; test bit 7 only (matches Adafruit library behaviour)
+    jr z,_ra8875_clear_done     ; bit 7 clear = done
+    dec de
+    ld a,d
+    or e
+    jr nz,_ra8875_clear_wait
+    ; timeout: return with error (NZ)
+    pop de
     pop bc
     pop af
+    or 1
+    ret
+_ra8875_clear_done:
+    pop de
+    pop bc
+    pop af
+    cp a                        ; clear flags (Z = success)
     ret
 
 ; Configure the full-screen scroll window and enable scrolling for both layers.
@@ -430,6 +454,7 @@ ra8875_initialise:
     call _ra8875_horizontal_active_window_init
     call _ra8875_vertical_active_window_init
     call ra8875_clear_window
+    ret nz ; error (timeout)
     call _ra8875_scroll_window_init
 
     call ra8875_display_on
