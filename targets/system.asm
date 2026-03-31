@@ -1,15 +1,14 @@
-; RAM and port assignments for BeanBoard/BeanBoardSPI hardware.
-; Other targets provide their own definitions of these labels
+; Stub RAM and port assignments 
+; Targets would provide their own definitions of these labels
 ; to Fulfil EXTERN labels in the asm modules.
 
 ; --- Console (console.asm) ---
 
     PUBLIC RA8875_RAMSTART
     PUBLIC CAPS_LOCK_STATE
-    EXTERN RA8875_RAMSIZE
 
-RA8875_RAMSTART equ 0xe000                              ; base address for RA8875 console variables
-CAPS_LOCK_STATE equ RA8875_RAMSTART + RA8875_RAMSIZE    ; 1 byte: caps lock state (0=off, 1=on)
+CAPS_LOCK_STATE equ 0xe000 ; 1 byte: caps lock state (0=off, 1=on) - would normally be set externally (by console input / keyboard)
+RA8875_RAMSTART equ 0xe001 ; base address for RA8875 console variables
 
 ; --- BeanBoard: GPIO bit-bang SPI transport (beanboard.asm) ---
 
