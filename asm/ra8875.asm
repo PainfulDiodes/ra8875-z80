@@ -51,22 +51,45 @@ INCLUDE "ra8875.inc"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; 0x0e was the minimum needed for PLLC1/2 init with a 10MHz Z80 clock
-RA8875_DELAY_VAL equ 0xff
+; 0x0092 (146) gives ~442us at 10MHz (slightly longer than the original 8-bit loop)
+RA8875_SETTLE_DELAY_VAL equ 0x0092
 
-; General timing delay - chip settling after PLL init etc.
-_ra8875_delay:
+; Register settling delay - used after writing timing registers:
+;   PLLC1 (_ra8875_pllc1_init)
+;   PLLC2 (_ra8875_pllc2_init)
+;   PCSR  (_ra8875_pcsr_init)
+_ra8875_reg_settle_delay:
     push bc
-    ld b,RA8875_DELAY_VAL
-_ra8875_delay_loop:
+    ld bc,RA8875_SETTLE_DELAY_VAL
+_ra8875_reg_settle_delay_loop:
     nop
-    djnz _ra8875_delay_loop
+    dec bc
+    ld a,b
+    or c
+    jr nz,_ra8875_reg_settle_delay_loop
+    pop bc
+    ret
+
+; 0x8000 (32768) gives ~100ms at 10MHz - same as entry_beandeck.asm boot delay
+RA8875_RESET_DELAY_VAL equ 0x8000
+
+; Reset delay ~100ms at 10MHz
+_ra8875_reset_delay:
+    push bc
+    ld bc,RA8875_RESET_DELAY_VAL
+_ra8875_reset_delay_loop:
+    nop
+    dec bc
+    ld a,b
+    or c
+    jr nz,_ra8875_reset_delay_loop
     pop bc
     ret
 
 ; Hardware reset - assert RESET, delay, then deassert
 ra8875_reset:
     call ra8875_reset_assert
-    call _ra8875_delay
+    call _ra8875_reset_delay
     call ra8875_reset_deassert
     ret
 
@@ -162,7 +185,7 @@ _ra8875_pllc1_init:
     ld a,RA8875_PLLC1
     ld b,RA8875_PLLC1_VAL
     call ra8875_write_reg
-    call _ra8875_delay
+    call _ra8875_reg_settle_delay
     pop bc
     pop af
     ret
@@ -173,7 +196,7 @@ _ra8875_pllc2_init:
     ld a,RA8875_PLLC2
     ld b,RA8875_PLLC2_VAL
     call ra8875_write_reg
-    call _ra8875_delay
+    call _ra8875_reg_settle_delay
     pop bc
     pop af
     ret
@@ -194,7 +217,7 @@ _ra8875_pcsr_init:
     ld a,RA8875_PCSR
     ld b,RA8875_PCSR_VAL
     call ra8875_write_reg
-    call _ra8875_delay
+    call _ra8875_reg_settle_delay
     pop bc
     pop af
     ret
