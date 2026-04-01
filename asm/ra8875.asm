@@ -73,16 +73,36 @@ _ra8875_reg_settle_delay_loop:
     pop bc
     ret
 
-; 0x8000 (32768) gives ~100ms at 10MHz - same as entry_beandeck.asm boot delay.
-; Used twice in ra8875_reset: once while RESET is asserted, once after deassert.
-RA8875_RESET_DELAY_VAL equ 0x8000
+; RESET pin minimum pulse width is in the nanosecond range per the datasheet.
+; 0x0200 (~1.5ms at 10MHz) reuses the PLL settle delay value - far above minimum.
+RA8875_RESET_ASSERT_DELAY_VAL equ 0x0200
+
+; Post-deassert: time for chip to complete internal POR before SPI is attempted.
+; Adafruit library uses 100ms (0x8000) as a conservative default.
+; 0x4000 (16384) gives ~50ms at 10MHz - sufficient for chip stabilisation.
+; If the CPU clock changes, recalculate: iterations = ceil(50000 / (30 / clock_mhz))
+; If intermittent init failures occur, increase to 0x6000 (~75ms) or 0x8000 (~100ms).
+RA8875_RESET_DELAY_VAL equ 0x4000
 
 ; Timeout for ra8875_clear_window poll loop.
 ; 0x8000 (32768) iterations ~= 100ms at 10MHz (same loop body as reset delay).
 ; If the CPU clock changes, recalculate: iterations = ceil(100000 / (30 / clock_mhz))
 RA8875_MCLR_TIMEOUT equ 0x8000
 
-; Reset delay ~100ms at 10MHz
+; Short delay for RESET-asserted phase (~1.5ms at 10MHz)
+_ra8875_reset_assert_delay:
+    push bc
+    ld bc,RA8875_RESET_ASSERT_DELAY_VAL
+_ra8875_reset_assert_delay_loop:
+    nop
+    dec bc
+    ld a,b
+    or c
+    jr nz,_ra8875_reset_assert_delay_loop
+    pop bc
+    ret
+
+; Post-deassert settling delay (~50ms at 10MHz)
 _ra8875_reset_delay:
     push bc
     ld bc,RA8875_RESET_DELAY_VAL
@@ -95,14 +115,14 @@ _ra8875_reset_delay_loop:
     pop bc
     ret
 
-; Hardware reset - assert RESET, delay, deassert, then wait for chip to stabilise.
-; The post-deassert delay matches the Adafruit RA8875 library (hardReset delay(100)):
-; the RA8875 requires time after RESET is released before it will respond to SPI.
+; Hardware reset - assert RESET briefly, deassert, then wait for chip to stabilise.
+; The RA8875 RESET minimum pulse width is in the nanosecond range; ~1.5ms is ample.
+; Post-deassert delay allows the chip to complete its internal POR sequence.
 ra8875_reset:
     call ra8875_reset_assert
-    call _ra8875_reset_delay        ; 100ms RESET asserted
+    call _ra8875_reset_assert_delay     ; ~1.5ms RESET asserted
     call ra8875_reset_deassert
-    call _ra8875_reset_delay        ; 100ms settle after deassert
+    call _ra8875_reset_delay            ; ~50ms settle after deassert
     ret
 
 
