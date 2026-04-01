@@ -52,10 +52,13 @@ INCLUDE "ra8875.inc"
 
 ; RA8875 datasheet requires >1ms after writing PLLC1/PLLC2 for PLL lock.
 ; Each loop iteration: nop(4) + dec bc(6) + ld a,b(4) + or c(4) + jr nz(12) = 30 cycles.
-; At 10MHz: 30 cycles = 3us/iteration -> 0x0200 (512) iterations ~= 1.5ms.
-; If the CPU clock changes, recalculate: iterations = ceil(1500 / (30 / clock_mhz))
-; Keep at least 1ms margin above the PLL lock time.
-RA8875_SETTLE_DELAY_VAL equ 0x0200
+; At 10MHz: 30 cycles = 3us/iteration -> 0x0800 (2048) iterations ~= 6ms.
+; If the CPU clock changes, recalculate: iterations = ceil(6000 / (30 / clock_mhz))
+; 6ms gives margin for PLL re-lock on warm reset (where re-lock takes longer than on
+; cold power-up because the PLL's charge-pump/VCO starts from a non-zero state).
+; With 1.5ms (0x0200) the PLL was not yet locked when ra8875_clear_window ran,
+; causing MCLR to run at crystal frequency (~12MHz) and take ~500ms instead of ~15ms.
+RA8875_SETTLE_DELAY_VAL equ 0x0800
 
 ; Register settling delay - used after writing timing registers:
 ;   PLLC1 (_ra8875_pllc1_init)
@@ -73,9 +76,11 @@ _ra8875_reg_settle_delay_loop:
     pop bc
     ret
 
-; RESET pin minimum pulse width is in the nanosecond range per the datasheet.
-; 0x0200 (~1.5ms at 10MHz) reuses the PLL settle delay value - far above minimum.
-RA8875_RESET_ASSERT_DELAY_VAL equ 0x0200
+; RESET pin minimum pulse width is nanoseconds, but a short pulse leaves the
+; RA8875 internal memory controller in its previous run state. On warm reset this
+; causes ra8875_clear_window to hang until timeout (~300-500ms), triggering retries.
+; 0x4000 (~50ms at 10MHz) matches the post-deassert settle and ensures a clean reset.
+RA8875_RESET_ASSERT_DELAY_VAL equ 0x4000
 
 ; Post-deassert: time for chip to complete internal POR before SPI is attempted.
 ; Adafruit library uses 100ms (0x8000) as a conservative default.
