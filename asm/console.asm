@@ -118,9 +118,9 @@ _putchar_line_wrap:
     call _advance_line
     jr _putchar_done
 _putchar_cursor_off:
+    call _erase_cursor              ; erase while visible flag is still set
     xor a
     ld (RA8875_CURSOR_VISIBLE),a
-    call _erase_cursor
     jr _putchar_done
 _putchar_cursor_on:
     ld a,1
