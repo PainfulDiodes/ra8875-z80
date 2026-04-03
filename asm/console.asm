@@ -6,11 +6,12 @@
 ; block cursor, and handles scrolling via the RA8875 vertical offset register.
 ;
 ; Public interface:
-;   ra8875_console_init     - initialise state; call after ra8875_initialise
-;   ra8875_console_putchar  - write character in A to console
-;   ra8875_console_puts     - write zero-terminated string pointed to by HL
-;   ra8875_console_cursor_x - set cursor column to A (0..RA8875_COLS-1)
-;   ra8875_console_cursor_y - set cursor row to A (0..RA8875_ROWS-1, logical)
+;   ra8875_console_init              - initialise state; call after ra8875_initialise
+;   ra8875_console_putchar           - write character in A to console
+;   ra8875_console_puts              - write zero-terminated string pointed to by HL
+;   ra8875_console_cursor_x          - set cursor column to A (0..RA8875_COLS-1)
+;   ra8875_console_cursor_y          - set cursor row to A (0..RA8875_ROWS-1, logical)
+;   ra8875_console_set_cursor_colour - set cursor colour (RA8875_COL_*); redraws if visible
 ;
 ; Special characters recognised by ra8875_console_putchar:
 ;   0x08  BS  - backspace: move cursor back one column, erase character (stops at col 0)
@@ -41,15 +42,16 @@
     EXTERN RA8875_RAMSTART
     PUBLIC RA8875_RAMSIZE
 
-    EXTERN CAPS_LOCK_STATE
-    PUBLIC ra8875_console_refresh_cursor
+    PUBLIC ra8875_console_set_cursor_colour
+    EXTERN ra8875_set_background_colour
 
-    ; RAM variables: col, row, scroll_top, cursor_visible
+    ; RAM variables: col, row, scroll_top, cursor_visible, cursor_colour
     RA8875_CURSOR_COL     equ RA8875_RAMSTART + 0  ; 1-byte column (0..RA8875_COLS-1)
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
     RA8875_SCROLL_TOP     equ RA8875_RAMSTART + 2  ; 1-byte physical row at top of display
     RA8875_CURSOR_VISIBLE equ RA8875_RAMSTART + 3  ; 1-byte non-zero = cursor visible, zero = cursor hidden
-    RA8875_RAMSIZE        equ 4                    ; bytes reserved for RA8875 console variables
+    RA8875_CURSOR_COLOUR  equ RA8875_RAMSTART + 4  ; 1-byte cursor colour index (RA8875_COL_*)
+    RA8875_RAMSIZE        equ 5                    ; bytes reserved for RA8875 console variables
 
     ; control characters
     RA8875_CONSOLE_CURSOR_OFF equ 0x0f
@@ -72,9 +74,10 @@ ra8875_console_init:
     ld (RA8875_CURSOR_COL),a
     ld (RA8875_CURSOR_ROW),a
     ld (RA8875_SCROLL_TOP),a
-    ld (CAPS_LOCK_STATE),a
     ld a,1
     ld (RA8875_CURSOR_VISIBLE),a
+    ld a,RA8875_COL_GREEN
+    ld (RA8875_CURSOR_COLOUR),a
     ; set foreground colour to green
     ld a,RA8875_COL_GREEN
     call ra8875_set_foreground_colour
@@ -323,7 +326,7 @@ _erase_cursor_done:
 
 
 ; Draw software cursor at current (RA8875_CURSOR_ROW, RA8875_CURSOR_COL).
-; Solid block: writes space with white background, reversing the normal colours.
+; Solid block: writes space with RA8875_CURSOR_COLOUR background.
 ; Positions RA8875 cursor, writes space, then repositions (putchar advances cursor).
 ; Preserves all registers.
 _draw_cursor:
@@ -333,44 +336,13 @@ _draw_cursor:
     ld a,(RA8875_CURSOR_VISIBLE)
     or a
     jr z,_draw_cursor_done      ; cursor hidden: skip visual rendering
-    ; cursor colour: green (caps off) or white (caps on)
-    ld a,(CAPS_LOCK_STATE)
-    or a
-    jr nz,_draw_cursor_white
-_draw_cursor_green:
-    ld a,RA8875_BGCR0
-    ld b,RA8875_COL_GREEN_R
-    call ra8875_write_reg
-    ld a,RA8875_BGCR1
-    ld b,RA8875_COL_GREEN_G
-    call ra8875_write_reg
-    ld a,RA8875_BGCR2
-    ld b,RA8875_COL_GREEN_B
-    call ra8875_write_reg
-    jr _draw_cursor_write
-_draw_cursor_white:
-    ld a,RA8875_BGCR0
-    ld b,RA8875_COL_WHITE_R
-    call ra8875_write_reg
-    ld a,RA8875_BGCR1
-    ld b,RA8875_COL_WHITE_G
-    call ra8875_write_reg
-    ld a,RA8875_BGCR2
-    ld b,RA8875_COL_WHITE_B
-    call ra8875_write_reg
-_draw_cursor_write:
+    ld a,(RA8875_CURSOR_COLOUR)
+    call ra8875_set_background_colour
     ld a,' '
     call ra8875_putchar
     ; restore background to black
-    ld a,RA8875_BGCR0
-    ld b,0x00
-    call ra8875_write_reg
-    ld a,RA8875_BGCR1
-    ld b,0x00
-    call ra8875_write_reg
-    ld a,RA8875_BGCR2
-    ld b,0x00
-    call ra8875_write_reg
+    ld a,RA8875_COL_BLACK
+    call ra8875_set_background_colour
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
 _draw_cursor_done:
     pop bc
@@ -378,16 +350,16 @@ _draw_cursor_done:
     ret
 
 
-; Refresh cursor colour to reflect current CAPS_LOCK_STATE.
-; Only redraws if cursor is currently visible.
-; Call after toggling caps lock state.
+; Set cursor colour and redraw cursor if visible.
+; A = colour index (RA8875_COL_*). Independent of cursor visibility.
 ; Preserves all registers.
-ra8875_console_refresh_cursor:
+ra8875_console_set_cursor_colour:
+    ld (RA8875_CURSOR_COLOUR),a
     push af
     ld a,(RA8875_CURSOR_VISIBLE)
     or a
-    jr z,_refresh_cursor_done
+    jr z,_set_cursor_colour_done
     call _draw_cursor
-_refresh_cursor_done:
+_set_cursor_colour_done:
     pop af
     ret
