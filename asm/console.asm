@@ -76,10 +76,9 @@ ra8875_console_init:
     ld (RA8875_SCROLL_TOP),a
     ld a,1
     ld (RA8875_CURSOR_VISIBLE),a
+    ; set cursor and foreground colour to green
     ld a,RA8875_COL_GREEN
     ld (RA8875_CURSOR_COLOUR),a
-    ; set foreground colour to green
-    ld a,RA8875_COL_GREEN
     call ra8875_set_foreground_colour
     ; draw initial software cursor at (0,0)
     call _draw_cursor
