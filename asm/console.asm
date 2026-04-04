@@ -43,15 +43,17 @@
     PUBLIC RA8875_RAMSIZE
 
     PUBLIC ra8875_console_set_cursor_colour
+    PUBLIC ra8875_console_set_background_colour
     EXTERN ra8875_set_background_colour
 
-    ; RAM variables: col, row, scroll_top, cursor_visible, cursor_colour
+    ; RAM variables: col, row, scroll_top, cursor_visible, cursor_colour, bg_colour
     RA8875_CURSOR_COL     equ RA8875_RAMSTART + 0  ; 1-byte column (0..RA8875_COLS-1)
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
     RA8875_SCROLL_TOP     equ RA8875_RAMSTART + 2  ; 1-byte physical row at top of display
     RA8875_CURSOR_VISIBLE equ RA8875_RAMSTART + 3  ; 1-byte non-zero = cursor visible, zero = cursor hidden
     RA8875_CURSOR_COLOUR  equ RA8875_RAMSTART + 4  ; 1-byte cursor colour index (RA8875_COL_*)
-    RA8875_RAMSIZE        equ 5                    ; bytes reserved for RA8875 console variables
+    RA8875_BG_COLOUR      equ RA8875_RAMSTART + 5  ; 1-byte background colour index (RA8875_COL_*)
+    RA8875_RAMSIZE        equ 6                    ; bytes reserved for RA8875 console variables
 
     ; control characters
     RA8875_CONSOLE_CURSOR_OFF equ 0x0f
@@ -74,6 +76,7 @@ ra8875_console_init:
     ld (RA8875_CURSOR_COL),a
     ld (RA8875_CURSOR_ROW),a
     ld (RA8875_SCROLL_TOP),a
+    ld (RA8875_BG_COLOUR),a         ; RA8875_COL_BLACK = 0
     ld a,1
     ld (RA8875_CURSOR_VISIBLE),a
     ; set cursor and foreground colour to green
@@ -308,7 +311,7 @@ _cursor_xy_position:
 
 
 ; Erase software cursor at current (RA8875_CURSOR_ROW, RA8875_CURSOR_COL).
-; Writes a space with the default black background.
+; Writes a space with the stored background colour.
 ; Preserves all registers.
 _erase_cursor:
     push af
@@ -316,6 +319,8 @@ _erase_cursor:
     or a
     jr z,_erase_cursor_done     ; cursor hidden: nothing to erase
     call _cursor_xy_position
+    ld a,(RA8875_BG_COLOUR)
+    call ra8875_set_background_colour
     ld a,' '
     call ra8875_putchar
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
@@ -339,8 +344,8 @@ _draw_cursor:
     call ra8875_set_background_colour
     ld a,' '
     call ra8875_putchar
-    ; restore background to black
-    ld a,RA8875_COL_BLACK
+    ; restore background to stored colour
+    ld a,(RA8875_BG_COLOUR)
     call ra8875_set_background_colour
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
 _draw_cursor_done:
@@ -361,4 +366,13 @@ ra8875_console_set_cursor_colour:
     call _draw_cursor
 _set_cursor_colour_done:
     pop af
+    ret
+
+
+; Set console background colour.
+; A = colour index (RA8875_COL_*). Updates RAM and hardware register.
+; Preserves all registers.
+ra8875_console_set_background_colour:
+    ld (RA8875_BG_COLOUR),a
+    call ra8875_set_background_colour
     ret
