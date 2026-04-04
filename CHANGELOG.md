@@ -1,20 +1,23 @@
 # v0.3.0 WIP
 
 * Rename environment.asm to system.asm for consistency with marvin
-* Export `RA8875_RAMSIZE equ 4` as PUBLIC from `console.asm`; host system can EXTERN this to cascade its own RAM allocation immediately after the RA8875 variables block
+* Export `RA8875_RAMSIZE` as PUBLIC from `console.asm`; host system can EXTERN this to cascade its own RAM allocation immediately after the RA8875 variables block; size increased from 4 to 5 bytes to accommodate `RA8875_CURSOR_COLOUR`
 * Colour support:
   * Two new public functions in `ra8875.asm`: `ra8875_set_foreground_colour`, `ra8875_set_background_colour` — pass colour constant in A, both preserve all registers
   * Eight colour constants added to `ra8875.inc`: `RA8875_COL_BLACK` through `RA8875_COL_WHITE` (0–7)
   * RGB565 component constants added to `ra8875.inc`: `RA8875_COL_*_R/G/B` for all eight colours
   * `ra8875_console_init` sets foreground colour to green on startup
-* Caps lock visual indicator:
-  * `_draw_cursor` checks `CAPS_LOCK_STATE` (an EXTERN byte supplied by the host) to select cursor background colour: green when caps lock is off, white when on
-  * New public function `ra8875_console_refresh_cursor` — redraws the cursor at the current position if visible; call after toggling caps lock state to update the indicator immediately
-  * `ra8875_console_init` zeroes `CAPS_LOCK_STATE` on startup
+* Cursor colour:
+  * New public function `ra8875_console_set_cursor_colour` — stores colour in `RA8875_CURSOR_COLOUR` RAM byte and redraws cursor at current position if visible; replaces `ra8875_console_refresh_cursor`
+  * `RA8875_CURSOR_COLOUR` RAM byte added; `_draw_cursor` uses it for the cursor background colour, decoupling cursor appearance from the host's `CAPS_LOCK_STATE`
+  * `ra8875_console_init` sets cursor colour to green
+* Fixed intermittent RA8875 initialisation bugs: restructured init sequence, added a more substantial RESET delay, reduced and tuned post-init settle delays
+* Fixed cursor-off: cursor is now erased while the visible flag is still set, preventing stale cursor remnants on screen
+* Minor optimisation to console putchar
 
 # v0.2.0
 
-* Console backspace: `ra8875_console_putchar` 
+* Console backspace: `ra8875_console_putchar`
   * Handles 0x08 (BS) and 0x7f (DEL, sent by most terminal emulators) identically
   * Moves cursor back one column erasing the character
   * Silently ignored at column 0
