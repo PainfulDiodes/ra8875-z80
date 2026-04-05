@@ -14,6 +14,12 @@
 * Fixed intermittent RA8875 initialisation bugs: restructured init sequence, added a more substantial RESET delay, reduced and tuned post-init settle delays
 * Fixed cursor-off: cursor is now erased while the visible flag is still set, preventing stale cursor remnants on screen
 * Minor optimisation to console putchar
+* Cursor show/hide as function calls:
+  * Added `ra8875_console_cursor_show` and `ra8875_console_cursor_hide` as public functions — each preserves all registers
+  * Removed SO (0x0E) / SI (0x0F) control character dispatch from `ra8875_console_putchar`; cursor visibility no longer pollutes the ASCII space
+  * Removed `RA8875_CONSOLE_CURSOR_ON` / `RA8875_CONSOLE_CURSOR_OFF` exported constants (no longer needed)
+* Background colour stored in RAM (`RA8875_BG_COLOUR` at `RA8875_RAMSTART + 5`); `RA8875_RAMSIZE` bumped 5→6
+* New public function `ra8875_console_set_background_colour` — stores colour to `RA8875_BG_COLOUR` RAM byte and updates hardware register; `_erase_cursor` and `_draw_cursor` use stored colour instead of hardcoded black
 
 # v0.2.0
 

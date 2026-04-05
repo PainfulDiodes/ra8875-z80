@@ -7,10 +7,10 @@
     EXTERN ra8875_console_putchar
     EXTERN ra8875_console_cursor_x
     EXTERN ra8875_console_cursor_y
+    EXTERN ra8875_console_cursor_show
+    EXTERN ra8875_console_cursor_hide
     EXTERN ra8875_putchar
     EXTERN ra8875_write_data
-    EXTERN RA8875_CONSOLE_CURSOR_OFF
-    EXTERN RA8875_CONSOLE_CURSOR_ON
     EXTERN ra8875_set_foreground_colour
 
 
@@ -33,8 +33,7 @@ test_start:
     ; sets the default foreground colour
     call ra8875_console_init
     ; and hide the cursor
-    ld a,RA8875_CONSOLE_CURSOR_OFF
-    call ra8875_console_putchar
+    call ra8875_console_cursor_hide
 
     ; fast-print splash screen - skip the console layer and bulk send data
     ld hl,SPLASH
@@ -44,8 +43,7 @@ test_start:
     ld a,22
     call ra8875_console_cursor_y
     ; show the cursor
-    ld a,RA8875_CONSOLE_CURSOR_ON
-    call ra8875_console_putchar
+    call ra8875_console_cursor_show
 
     ld a,RA8875_COL_YELLOW
     call ra8875_set_foreground_colour
@@ -152,12 +150,12 @@ MSG1:
     defm "Console wrap and scroll: ",0x00
 
 ; all characters 0x01-0xff excluding console special characters:
-;   0x0a LF, 0x0d CR, 0x0e SO (cursor on), 0x0f SI (cursor off)
+;   0x0a LF, 0x0d CR
 ; zero-terminated so ra8875_console_puts or _print_all_chars can use it directly
 ALL_CHARS:
     defb 0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09
     defb 0x0b,0x0c                              ; skip 0x0a LF
-                                                ; skip 0x0d CR, 0x0e SO, 0x0f SI
+    defb 0x0e,0x0f                              ; 0x0d CR skipped; 0x0e and 0x0f now printable
     defb 0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f
     defb 0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f
     defb 0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f

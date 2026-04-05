@@ -12,13 +12,13 @@
 ;   ra8875_console_cursor_x          - set cursor column to A (0..RA8875_COLS-1)
 ;   ra8875_console_cursor_y          - set cursor row to A (0..RA8875_ROWS-1, logical)
 ;   ra8875_console_set_cursor_colour - set cursor colour (RA8875_COL_*); redraws if visible
+;   ra8875_console_cursor_show       - make software cursor visible
+;   ra8875_console_cursor_hide       - hide software cursor
 ;
 ; Special characters recognised by ra8875_console_putchar:
 ;   0x08  BS  - backspace: move cursor back one column, erase character (stops at col 0)
 ;   0x0a  LF  - newline: erase cursor, advance to next row (scrolls if needed)
 ;   0x0d  CR  - same as LF
-;   0x0e  SO  - cursor on:  make software cursor visible
-;   0x0f  SI  - cursor off: hide software cursor
 ;   0x7f  DEL - backspace key on most terminals: same as BS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -28,9 +28,8 @@
     PUBLIC ra8875_console_init
     PUBLIC ra8875_console_cursor_x
     PUBLIC ra8875_console_cursor_y
-
-    PUBLIC RA8875_CONSOLE_CURSOR_OFF
-    PUBLIC RA8875_CONSOLE_CURSOR_ON
+    PUBLIC ra8875_console_cursor_show
+    PUBLIC ra8875_console_cursor_hide
 
     EXTERN ra8875_putchar
     EXTERN ra8875_cursor_x
@@ -54,10 +53,6 @@
     RA8875_CURSOR_COLOUR  equ RA8875_RAMSTART + 4  ; 1-byte cursor colour index (RA8875_COL_*)
     RA8875_BG_COLOUR      equ RA8875_RAMSTART + 5  ; 1-byte background colour index (RA8875_COL_*)
     RA8875_RAMSIZE        equ 6                    ; bytes reserved for RA8875 console variables
-
-    ; control characters
-    RA8875_CONSOLE_CURSOR_OFF equ 0x0f
-    RA8875_CONSOLE_CURSOR_ON equ 0x0e
 
 
 ; Initialise RA8875 console state.
@@ -94,10 +89,6 @@ ra8875_console_putchar:
     push bc
     push de
     push hl
-    cp 0x0f                     ; SI - cursor off?
-    jr z,_putchar_cursor_off
-    cp 0x0e                     ; SO - cursor on?
-    jr z,_putchar_cursor_on
     cp 0x0a                     ; newline?
     jr z,_putchar_newline
     cp 0x0d                     ; carriage return? TODO - validate - do we need this?
@@ -121,16 +112,6 @@ _putchar_line_wrap:
     xor a
     ld (RA8875_CURSOR_COL),a
     call _advance_line
-    jr _putchar_done
-_putchar_cursor_off:
-    call _erase_cursor              ; erase while visible flag is still set
-    xor a
-    ld (RA8875_CURSOR_VISIBLE),a
-    jr _putchar_done
-_putchar_cursor_on:
-    ld a,1
-    ld (RA8875_CURSOR_VISIBLE),a
-    call _draw_cursor
     jr _putchar_done
 _putchar_newline:
     ; erase software cursor with a space before moving to next line
@@ -375,4 +356,26 @@ _set_cursor_colour_done:
 ra8875_console_set_background_colour:
     ld (RA8875_BG_COLOUR),a
     call ra8875_set_background_colour
+    ret
+
+
+; Hide software cursor. Erases cursor block at current position.
+; No input. Preserves all registers.
+ra8875_console_cursor_hide:
+    push af
+    call _erase_cursor
+    xor a
+    ld (RA8875_CURSOR_VISIBLE),a
+    pop af
+    ret
+
+
+; Show software cursor. Draws cursor block at current position.
+; No input. Preserves all registers.
+ra8875_console_cursor_show:
+    push af
+    ld a,1
+    ld (RA8875_CURSOR_VISIBLE),a
+    call _draw_cursor
+    pop af
     ret
