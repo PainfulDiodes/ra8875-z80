@@ -15,11 +15,6 @@
 ;   ra8875_console_cursor_show       - make software cursor visible
 ;   ra8875_console_cursor_hide       - hide software cursor
 ;
-; Special characters recognised by ra8875_console_putchar:
-;   0x08  BS  - backspace: move cursor back one column, erase character (stops at col 0)
-;   0x0a  LF  - newline: erase cursor, advance to next row (scrolls if needed)
-;   0x0d  CR  - same as LF
-;   0x7f  DEL - backspace key on most terminals: same as BS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     INCLUDE "ra8875.inc"
@@ -44,6 +39,12 @@
     PUBLIC ra8875_console_set_cursor_colour
     PUBLIC ra8875_console_set_background_colour
     EXTERN ra8875_set_background_colour
+
+    ; recognised control characters
+    CHAR_BS  equ 0x08               ; backspace
+    CHAR_LF  equ 0x0a               ; line feed / newline
+    CHAR_CR  equ 0x0d               ; carriage return
+    CHAR_DEL equ 0x7f               ; DEL (backspace key on most terminals)
 
     ; RAM variables: col, row, scroll_top, cursor_visible, cursor_colour, bg_colour
     RA8875_CURSOR_COL     equ RA8875_RAMSTART + 0  ; 1-byte column (0..RA8875_COLS-1)
@@ -89,13 +90,13 @@ ra8875_console_putchar:
     push bc
     push de
     push hl
-    cp 0x0a                     ; newline?
+    cp CHAR_LF                  ; newline?
     jr z,_putchar_newline
-    cp 0x0d                     ; carriage return? TODO - validate - do we need this?
+    cp CHAR_CR                  ; carriage return? TODO - validate - do we need this?
     jr z,_putchar_newline
-    cp 0x08                     ; BS - backspace?
+    cp CHAR_BS                  ; BS - backspace?
     jr z,_putchar_backspace
-    cp 0x7f                     ; DEL - backspace key on most terminals?
+    cp CHAR_DEL                 ; DEL - backspace key on most terminals?
     jr z,_putchar_backspace
     ; character overwrites software cursor at current position; RA8875 auto-advances
 _putchar_printable:
