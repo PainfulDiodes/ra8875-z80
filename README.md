@@ -16,10 +16,11 @@ The driver has been written around the [Adafruit RA8875 Driver Board (Rev E) for
 
 It has been configured for and tested with the [Adafruit 7.0" 40-pin TFT Display - 800x480 without Touchscreen](https://www.adafruit.com/product/2353)
 
-The RA8875 board has an SPI interface. The library includes 2 example transports, one that  bit-bangs SPI via a parallel port and another that assumes a hardware SPI interface is provided on a parallel port:
+The RA8875 board has an SPI interface. The library includes 2 example transports:
 
-- **targets/beanboardspi.asm** — assumes a hardware SPI ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck)
-- **targets/beanboard.asm** — bit-bang SPI via GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard))
+**targets/beanboardspi.asm** — this assumes a hardware SPI interface is connected ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck); this target has been tested
+
+**targets/beanboard.asm** — this bit-bangs SPI via a GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard)); this has NOT been tested, but the code was adopted from earlier testing - it should vurrently be considered experimental
 
 There are some software delays used in the driver. These assume a 10MHz Z80 CPU and will likely need adjusting for other clock speeds (TODO: extract delay paramters as a CPU config in the system.asm module)
 
@@ -31,7 +32,7 @@ There are some software delays used in the driver. These assume a 10MHz Z80 CPU 
 | `asm/ra8875.inc`           | RA8875 Register definitions and constants              |
 | `asm/console.asm`          | Optional console layer (scrolling and software cursor) |
 | `targets/beanboardspi.asm` | Parallel transport (hardware SPI) for BeanBoardSPI     |
-| `targets/beanboard.asm`    | Bit-bang SPI transport for BeanBoard GPIO              |
+| `targets/beanboard.asm`    | Experimental bit-bang SPI transport for BeanBoard GPIO |
 | `targets/system.asm`       | RAM and port assignments                               |
 | `tests/main.asm`           | Example test harness                                   |
 
