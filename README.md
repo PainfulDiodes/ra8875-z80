@@ -8,7 +8,7 @@ This is an initial version with limited capability and was built and tested for 
 
 The RA8875 has a large number of registers for controlling the device. The core library here provides primitives for a subset of RA8875 commands and is functional for text output. Basic foreground and background colour control is supported. Graphics support is not yet implemented.
 
-A "console" implementation is provided which receives anr prints characters, wraps lines and scrolls the display. It supports a handful of control characters - newline, carriage return, backspace (backspace to the beginning of the current line of text). Functions are also provided for controlling the colour of the cursor and cursor visibility and positioning. Although the RA8875 implements its own cursor, I have found that this doesn't play well with hardware scrolling, so a software cursor has been implemented in the console. I have not yet implemented console escape sequences.
+A "console" implementation is provided which receives and prints characters, wraps lines and scrolls the display. It supports a handful of control characters - newline, carriage return, backspace (backspace to the beginning of the current line of text). Functions are also provided for controlling the colour of the cursor and cursor visibility and positioning. Although the RA8875 implements its own cursor, I have found that this doesn't play well with hardware scrolling, so a software cursor has been implemented in the console. I have not yet implemented console escape sequences.
 
 ## Hardware Compatibility
 
