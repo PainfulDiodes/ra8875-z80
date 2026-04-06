@@ -1,34 +1,32 @@
-# v0.3.0 WIP
+# v0.3
 
-* Rename environment.asm to system.asm for consistency with marvin
-* Export `RA8875_RAMSIZE` as PUBLIC from `console.asm`; host system can EXTERN this to cascade its own RAM allocation immediately after the RA8875 variables block; size increased from 4 to 5 bytes to accommodate `RA8875_CURSOR_COLOUR`
+* Rename `environment.asm` to `system.asm` for consistency with marvin
+* Fixed intermittent RA8875 initialisation bugs: restructured init sequence, added a more substantial RESET delay, reduced and tuned post-init settle delays
+* Minor optimisation to console putchar
+
 * Colour support:
-  * Two new public functions in `ra8875.asm`: `ra8875_set_foreground_colour`, `ra8875_set_background_colour` — pass colour constant in A, both preserve all registers
   * Eight colour constants added to `ra8875.inc`: `RA8875_COL_BLACK` through `RA8875_COL_WHITE` (0–7)
   * RGB565 component constants added to `ra8875.inc`: `RA8875_COL_*_R/G/B` for all eight colours
-  * `ra8875_console_init` sets foreground colour to green on startup
-* Cursor colour:
-  * New public function `ra8875_console_set_cursor_colour` — stores colour in `RA8875_CURSOR_COLOUR` RAM byte and redraws cursor at current position if visible; replaces `ra8875_console_refresh_cursor`
-  * `RA8875_CURSOR_COLOUR` RAM byte added; `_draw_cursor` uses it for the cursor background colour, decoupling cursor appearance from the host's `CAPS_LOCK_STATE`
-  * `ra8875_console_init` sets cursor colour to green
-* Fixed intermittent RA8875 initialisation bugs: restructured init sequence, added a more substantial RESET delay, reduced and tuned post-init settle delays
-* Fixed cursor-off: cursor is now erased while the visible flag is still set, preventing stale cursor remnants on screen
-* Minor optimisation to console putchar
-* Cursor show/hide as function calls:
+  * Two new public functions in `ra8875.asm`: `ra8875_set_foreground_colour`, `ra8875_set_background_colour` — pass colour constant in A, both preserve all registers
+  * New public function `ra8875_console_set_background_colour` — stores colour to `RA8875_BG_COLOUR` RAM byte and updates hardware register; `_erase_cursor` and `_draw_cursor` use stored colour instead of hardcoded black
+  * New public function `ra8875_console_set_cursor_colour` — stores colour in `RA8875_CURSOR_COLOUR` RAM byte and redraws cursor at current position if visible; replaces `ra8875_console_refresh_cursor`; cursor appearance decoupled from host's `CAPS_LOCK_STATE`
+  * `ra8875_console_init` sets foreground colour and cursor colour to green on startup
+  * `RA8875_BG_COLOUR` and `RA8875_CURSOR_COLOUR` RAM bytes added; `RA8875_RAMSIZE` bumped 4→6 and exported as PUBLIC — host can EXTERN this to cascade its own RAM allocation
+
+* Cursor show/hide:
   * Added `ra8875_console_cursor_show` and `ra8875_console_cursor_hide` as public functions — each preserves all registers
   * Removed SO (0x0E) / SI (0x0F) control character dispatch from `ra8875_console_putchar`; cursor visibility no longer pollutes the ASCII space
   * Removed `RA8875_CONSOLE_CURSOR_ON` / `RA8875_CONSOLE_CURSOR_OFF` exported constants (no longer needed)
-* Background colour stored in RAM (`RA8875_BG_COLOUR` at `RA8875_RAMSTART + 5`); `RA8875_RAMSIZE` bumped 5→6
-* New public function `ra8875_console_set_background_colour` — stores colour to `RA8875_BG_COLOUR` RAM byte and updates hardware register; `_erase_cursor` and `_draw_cursor` use stored colour instead of hardcoded black
+  * Fixed cursor-off: cursor is now erased while the visible flag is still set, preventing stale cursor remnant on screen
 
-# v0.2.0
+# v0.2
 
 * Console backspace: `ra8875_console_putchar`
   * Handles 0x08 (BS) and 0x7f (DEL, sent by most terminal emulators) identically
   * Moves cursor back one column erasing the character
   * Silently ignored at column 0
 
-# v0.1.0
+# v0.1
 
 * RA8875 TFT display driver library extracted from Marvin firmware
 * Modules: `ra8875.asm`, `ra8875.inc`, `ra8875_gpio.asm` (GPIO bit-bang SPI), `ra8875_spi.asm` (hardware SPI), `console.asm` (teletype-style console layer)
