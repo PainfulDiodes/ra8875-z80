@@ -4,11 +4,11 @@ Z80 library driver for the RA8875 TFT display controller (builds with [z88dk](ht
 
 ## Overview
 
-This is an initial version with limited capability and was built and tested for a specific hardware configuration ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard) and [BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) - "BeanDeck") and [Marvin](https://github.com/PainfulDiodes/Marvin) firmware. That said, it is delivered as an independent library, and was designed with adaptability in mind, so could be repurposed for other systems. I will work on improving flexibility (as time allows).
+This is an initial version with limited capability and was built and tested for a specific hardware configuration ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard) and [BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) - "BeanDeck") and [Marvin](https://github.com/PainfulDiodes/Marvin) firmware. That said, it is delivered as an independent library, and was designed with adaptability in mind, so could be repurposed for other systems.
 
-The RA8875 has a vast number of registers for controlling the device. The core library here provides primitives for a subset of RA8875 commands and is functional for text output. Basic foreground and background colour control is supported via `ra8875_set_foreground_colour` and `ra8875_set_background_colour`. Graphics support is not yet implemented.
+The RA8875 has a large number of registers for controlling the device. The core library here provides primitives for a subset of RA8875 commands and is functional for text output. Basic foreground and background colour control is supported. Graphics support is not yet implemented.
 
-A "console" implementation is provided which receives printable characters and a handful of control characters such as cursor-on, cursor-off, backspace and new-line. Cursor column and row can be set programmatically via `ra8875_console_cursor_x` and `ra8875_console_cursor_y`. Although the RA8875 implements its own cursor, I have found that this doesn't play well with hardware scrolling, so a software cursor has been implemented in the console. This supports line wrapping and vertical scrolling and backspace (backspace to the beginning of the current line of text). I have not yet implemented escape sequences.
+A "console" implementation is provided which receives anr prints characters, wraps lines and scrolls the display. It supports a handful of control characters - newline, carriage return, backspace (backspace to the beginning of the current line of text). Functions are also provided for controlling the colour of the cursor and cursor visibility and positioning. Although the RA8875 implements its own cursor, I have found that this doesn't play well with hardware scrolling, so a software cursor has been implemented in the console. I have not yet implemented console escape sequences.
 
 ## Hardware Compatibility
 
@@ -20,16 +20,16 @@ The RA8875 board has an SPI interface. The library includes 2 example transports
 
 **targets/beanboardspi.asm** — this assumes a hardware SPI interface is connected ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck); this target has been tested
 
-**targets/beanboard.asm** — this bit-bangs SPI via a GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard)); this has NOT been tested, but the code was adopted from earlier testing - it should vurrently be considered experimental
+**targets/beanboard.asm** — this bit-bangs SPI via a GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard)); this has NOT been tested, but the code was adopted from earlier prototypes - it should currently be considered experimental.
 
-There are some software delays used in the driver. These assume a 10MHz Z80 CPU and will likely need adjusting for other clock speeds (TODO: extract delay paramters as a CPU config in the system.asm module)
+There are some software delays used in the driver. These assume a 10MHz Z80 CPU and may need adjusting for other clock speeds (TODO: extract delay paramters as a CPU config in the system.asm module)
 
 ## Files
 
 | File                       | Description                                            |
 |----------------------------|--------------------------------------------------------|
 | `asm/ra8875.asm`           | Core RA8875 chip driver                                |
-| `asm/ra8875.inc`           | RA8875 Register definitions and constants              |
+| `asm/ra8875.inc`           | Core RA8875 Register definitions and constants         |
 | `asm/console.asm`          | Optional console layer (scrolling and software cursor) |
 | `targets/beanboardspi.asm` | Parallel transport (hardware SPI) for BeanBoardSPI     |
 | `targets/beanboard.asm`    | Experimental bit-bang SPI transport for BeanBoard GPIO |
