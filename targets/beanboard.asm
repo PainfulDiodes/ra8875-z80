@@ -1,6 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; RA8875 bit-bang SPI transport layer
 ;
+; EXPERIMENTAL
+;
 ; Provides the low-level SPI transport interface to be used by ra8875.asm.
 ; Bit-bangs the SPI protocol over the BeanBoard GPIO port, with manual
 ; control of SCK, MOSI, MISO, CS, and RESET signals.

@@ -6,19 +6,15 @@
 ; block cursor, and handles scrolling via the RA8875 vertical offset register.
 ;
 ; Public interface:
-;   ra8875_console_init     - initialise state; call after ra8875_initialise
-;   ra8875_console_putchar  - write character in A to console
-;   ra8875_console_puts     - write zero-terminated string pointed to by HL
-;   ra8875_console_cursor_x - set cursor column to A (0..RA8875_COLS-1)
-;   ra8875_console_cursor_y - set cursor row to A (0..RA8875_ROWS-1, logical)
+;   ra8875_console_init              - initialise state; call after ra8875_initialise
+;   ra8875_console_putchar           - write character in A to console
+;   ra8875_console_puts              - write zero-terminated string pointed to by HL
+;   ra8875_console_cursor_x          - set cursor column to A (0..RA8875_COLS-1)
+;   ra8875_console_cursor_y          - set cursor row to A (0..RA8875_ROWS-1, logical)
+;   ra8875_console_set_cursor_colour - set cursor colour (RA8875_COL_*); redraws if visible
+;   ra8875_console_cursor_show       - make software cursor visible
+;   ra8875_console_cursor_hide       - hide software cursor
 ;
-; Special characters recognised by ra8875_console_putchar:
-;   0x08  BS  - backspace: move cursor back one column, erase character (stops at col 0)
-;   0x0a  LF  - newline: erase cursor, advance to next row (scrolls if needed)
-;   0x0d  CR  - same as LF
-;   0x0e  SO  - cursor on:  make software cursor visible
-;   0x0f  SI  - cursor off: hide software cursor
-;   0x7f  DEL - backspace key on most terminals: same as BS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     INCLUDE "ra8875.inc"
@@ -27,27 +23,37 @@
     PUBLIC ra8875_console_init
     PUBLIC ra8875_console_cursor_x
     PUBLIC ra8875_console_cursor_y
-
-    PUBLIC RA8875_CONSOLE_CURSOR_OFF
-    PUBLIC RA8875_CONSOLE_CURSOR_ON
+    PUBLIC ra8875_console_cursor_show
+    PUBLIC ra8875_console_cursor_hide
 
     EXTERN ra8875_putchar
     EXTERN ra8875_cursor_x
     EXTERN ra8875_cursor_y
     EXTERN ra8875_write_reg
     EXTERN ra8875_read_reg
+    EXTERN ra8875_set_foreground_colour
 
     EXTERN RA8875_RAMSTART
+    PUBLIC RA8875_RAMSIZE
 
-    ; RAM variables 4 bytes: col, row, scroll_top, cursor_visible
+    PUBLIC ra8875_console_set_cursor_colour
+    PUBLIC ra8875_console_set_background_colour
+    EXTERN ra8875_set_background_colour
+
+    ; recognised control characters
+    CHAR_BS  equ 0x08               ; backspace
+    CHAR_LF  equ 0x0a               ; line feed / newline
+    CHAR_CR  equ 0x0d               ; carriage return
+    CHAR_DEL equ 0x7f               ; DEL (backspace key on most terminals)
+
+    ; RAM variables: col, row, scroll_top, cursor_visible, cursor_colour, bg_colour
     RA8875_CURSOR_COL     equ RA8875_RAMSTART + 0  ; 1-byte column (0..RA8875_COLS-1)
     RA8875_CURSOR_ROW     equ RA8875_RAMSTART + 1  ; 1-byte physical row (0..RA8875_ROWS-1)
     RA8875_SCROLL_TOP     equ RA8875_RAMSTART + 2  ; 1-byte physical row at top of display
     RA8875_CURSOR_VISIBLE equ RA8875_RAMSTART + 3  ; 1-byte non-zero = cursor visible, zero = cursor hidden
-
-    ; control characters
-    RA8875_CONSOLE_CURSOR_OFF equ 0x0f
-    RA8875_CONSOLE_CURSOR_ON equ 0x0e
+    RA8875_CURSOR_COLOUR  equ RA8875_RAMSTART + 4  ; 1-byte cursor colour index (RA8875_COL_*)
+    RA8875_BG_COLOUR      equ RA8875_RAMSTART + 5  ; 1-byte background colour index (RA8875_COL_*)
+    RA8875_RAMSIZE        equ 6                    ; bytes reserved for RA8875 console variables
 
 
 ; Initialise RA8875 console state.
@@ -66,8 +72,13 @@ ra8875_console_init:
     ld (RA8875_CURSOR_COL),a
     ld (RA8875_CURSOR_ROW),a
     ld (RA8875_SCROLL_TOP),a
+    ld (RA8875_BG_COLOUR),a         ; RA8875_COL_BLACK = 0
     ld a,1
     ld (RA8875_CURSOR_VISIBLE),a
+    ; set cursor and foreground colour to green
+    ld a,RA8875_COL_GREEN
+    ld (RA8875_CURSOR_COLOUR),a
+    call ra8875_set_foreground_colour
     ; draw initial software cursor at (0,0)
     call _draw_cursor
     ret
@@ -79,17 +90,13 @@ ra8875_console_putchar:
     push bc
     push de
     push hl
-    cp 0x0f                     ; SI - cursor off?
-    jr z,_putchar_cursor_off
-    cp 0x0e                     ; SO - cursor on?
-    jr z,_putchar_cursor_on
-    cp 0x0a                     ; newline?
+    cp CHAR_LF                  ; newline?
     jr z,_putchar_newline
-    cp 0x0d                     ; carriage return? TODO - validate - do we need this?
+    cp CHAR_CR                  ; carriage return? TODO - validate - do we need this?
     jr z,_putchar_newline
-    cp 0x08                     ; BS - backspace?
+    cp CHAR_BS                  ; BS - backspace?
     jr z,_putchar_backspace
-    cp 0x7f                     ; DEL - backspace key on most terminals?
+    cp CHAR_DEL                 ; DEL - backspace key on most terminals?
     jr z,_putchar_backspace
     ; character overwrites software cursor at current position; RA8875 auto-advances
 _putchar_printable:
@@ -106,16 +113,6 @@ _putchar_line_wrap:
     xor a
     ld (RA8875_CURSOR_COL),a
     call _advance_line
-    jr _putchar_done
-_putchar_cursor_off:
-    xor a
-    ld (RA8875_CURSOR_VISIBLE),a
-    call _erase_cursor
-    jr _putchar_done
-_putchar_cursor_on:
-    ld a,1
-    ld (RA8875_CURSOR_VISIBLE),a
-    call _draw_cursor
     jr _putchar_done
 _putchar_newline:
     ; erase software cursor with a space before moving to next line
@@ -296,7 +293,7 @@ _cursor_xy_position:
 
 
 ; Erase software cursor at current (RA8875_CURSOR_ROW, RA8875_CURSOR_COL).
-; Writes a space with the default black background.
+; Writes a space with the stored background colour.
 ; Preserves all registers.
 _erase_cursor:
     push af
@@ -304,6 +301,8 @@ _erase_cursor:
     or a
     jr z,_erase_cursor_done     ; cursor hidden: nothing to erase
     call _cursor_xy_position
+    ld a,(RA8875_BG_COLOUR)
+    call ra8875_set_background_colour
     ld a,' '
     call ra8875_putchar
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
@@ -313,7 +312,7 @@ _erase_cursor_done:
 
 
 ; Draw software cursor at current (RA8875_CURSOR_ROW, RA8875_CURSOR_COL).
-; Solid block: writes space with white background, reversing the normal colours.
+; Solid block: writes space with RA8875_CURSOR_COLOUR background.
 ; Positions RA8875 cursor, writes space, then repositions (putchar advances cursor).
 ; Preserves all registers.
 _draw_cursor:
@@ -323,30 +322,61 @@ _draw_cursor:
     ld a,(RA8875_CURSOR_VISIBLE)
     or a
     jr z,_draw_cursor_done      ; cursor hidden: skip visual rendering
-    ; set background to white for solid block cursor
-    ld a,RA8875_BGCR0
-    ld b,0x1f
-    call ra8875_write_reg
-    ld a,RA8875_BGCR1
-    ld b,0x3f
-    call ra8875_write_reg
-    ld a,RA8875_BGCR2
-    ld b,0x1f
-    call ra8875_write_reg
+    ld a,(RA8875_CURSOR_COLOUR)
+    call ra8875_set_background_colour
     ld a,' '
     call ra8875_putchar
-    ; restore background to black
-    ld a,RA8875_BGCR0
-    ld b,0x00
-    call ra8875_write_reg
-    ld a,RA8875_BGCR1
-    ld b,0x00
-    call ra8875_write_reg
-    ld a,RA8875_BGCR2
-    ld b,0x00
-    call ra8875_write_reg
+    ; restore background to stored colour
+    ld a,(RA8875_BG_COLOUR)
+    call ra8875_set_background_colour
     call _cursor_xy_position    ; reposition: putchar advanced the RA8875 cursor
 _draw_cursor_done:
     pop bc
+    pop af
+    ret
+
+
+; Set cursor colour and redraw cursor if visible.
+; A = colour index (RA8875_COL_*). Independent of cursor visibility.
+; Preserves all registers.
+ra8875_console_set_cursor_colour:
+    ld (RA8875_CURSOR_COLOUR),a
+    push af
+    ld a,(RA8875_CURSOR_VISIBLE)
+    or a
+    jr z,_set_cursor_colour_done
+    call _draw_cursor
+_set_cursor_colour_done:
+    pop af
+    ret
+
+
+; Set console background colour.
+; A = colour index (RA8875_COL_*). Updates RAM and hardware register.
+; Preserves all registers.
+ra8875_console_set_background_colour:
+    ld (RA8875_BG_COLOUR),a
+    call ra8875_set_background_colour
+    ret
+
+
+; Hide software cursor. Erases cursor block at current position.
+; No input. Preserves all registers.
+ra8875_console_cursor_hide:
+    push af
+    call _erase_cursor
+    xor a
+    ld (RA8875_CURSOR_VISIBLE),a
+    pop af
+    ret
+
+
+; Show software cursor. Draws cursor block at current position.
+; No input. Preserves all registers.
+ra8875_console_cursor_show:
+    push af
+    ld a,1
+    ld (RA8875_CURSOR_VISIBLE),a
+    call _draw_cursor
     pop af
     ret

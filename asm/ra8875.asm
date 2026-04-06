@@ -27,6 +27,8 @@
     PUBLIC ra8875_memory_read_write_command
     PUBLIC ra8875_putchar
     PUBLIC ra8875_puts
+    PUBLIC ra8875_set_foreground_colour
+    PUBLIC ra8875_set_background_colour
 
 ; Transport interface (EXTERN - provided by transport module):
 ;   ra8875_reset_assert  - Assert hardware RESET of the controller
@@ -48,24 +50,84 @@ INCLUDE "ra8875.inc"
 ; common timing and reset
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; 0x0e was the minimum needed for PLLC1/2 init with a 10MHz Z80 clock
-RA8875_DELAY_VAL equ 0xff
+; RA8875 datasheet requires >1ms after writing PLLC1/PLLC2 for PLL lock.
+; Each loop iteration: nop(4) + dec bc(6) + ld a,b(4) + or c(4) + jr nz(12) = 30 cycles.
+; At 10MHz: 30 cycles = 3us/iteration -> 0x0800 (2048) iterations ~= 6ms.
+; If the CPU clock changes, recalculate: iterations = ceil(6000 / (30 / clock_mhz))
+; 6ms gives margin for PLL re-lock on warm reset (where re-lock takes longer than on
+; cold power-up because the PLL's charge-pump/VCO starts from a non-zero state).
+; With 1.5ms (0x0200) the PLL was not yet locked when ra8875_clear_window ran,
+; causing MCLR to run at crystal frequency (~12MHz) and take ~500ms instead of ~15ms.
+RA8875_SETTLE_DELAY_VAL equ 0x0800
 
-; General timing delay - chip settling after PLL init etc.
-_ra8875_delay:
+; Register settling delay - used after writing timing registers:
+;   PLLC1 (_ra8875_pllc1_init)
+;   PLLC2 (_ra8875_pllc2_init)
+;   PCSR  (_ra8875_pcsr_init)
+_ra8875_reg_settle_delay:
     push bc
-    ld b,RA8875_DELAY_VAL
-_ra8875_delay_loop:
+    ld bc,RA8875_SETTLE_DELAY_VAL
+_ra8875_reg_settle_delay_loop:
     nop
-    djnz _ra8875_delay_loop
+    dec bc
+    ld a,b
+    or c
+    jr nz,_ra8875_reg_settle_delay_loop
     pop bc
     ret
 
-; Hardware reset - assert RESET, delay, then deassert
+; RESET pin minimum pulse width is nanoseconds, but a short pulse leaves the
+; RA8875 internal memory controller in its previous run state. On warm reset this
+; causes ra8875_clear_window to hang until timeout (~300-500ms), triggering retries.
+; 0x4000 (~50ms at 10MHz) matches the post-deassert settle and ensures a clean reset.
+RA8875_RESET_ASSERT_DELAY_VAL equ 0x4000
+
+; Post-deassert: time for chip to complete internal POR before SPI is attempted.
+; Adafruit library uses 100ms (0x8000) as a conservative default.
+; 0x4000 (16384) gives ~50ms at 10MHz - sufficient for chip stabilisation.
+; If the CPU clock changes, recalculate: iterations = ceil(50000 / (30 / clock_mhz))
+; If intermittent init failures occur, increase to 0x6000 (~75ms) or 0x8000 (~100ms).
+RA8875_RESET_DELAY_VAL equ 0x4000
+
+; Timeout for ra8875_clear_window poll loop.
+; 0x8000 (32768) iterations ~= 100ms at 10MHz (same loop body as reset delay).
+; If the CPU clock changes, recalculate: iterations = ceil(100000 / (30 / clock_mhz))
+RA8875_MCLR_TIMEOUT equ 0x8000
+
+; Short delay for RESET-asserted phase (~1.5ms at 10MHz)
+_ra8875_reset_assert_delay:
+    push bc
+    ld bc,RA8875_RESET_ASSERT_DELAY_VAL
+_ra8875_reset_assert_delay_loop:
+    nop
+    dec bc
+    ld a,b
+    or c
+    jr nz,_ra8875_reset_assert_delay_loop
+    pop bc
+    ret
+
+; Post-deassert settling delay (~50ms at 10MHz)
+_ra8875_reset_delay:
+    push bc
+    ld bc,RA8875_RESET_DELAY_VAL
+_ra8875_reset_delay_loop:
+    nop
+    dec bc
+    ld a,b
+    or c
+    jr nz,_ra8875_reset_delay_loop
+    pop bc
+    ret
+
+; Hardware reset - assert RESET briefly, deassert, then wait for chip to stabilise.
+; The RA8875 RESET minimum pulse width is in the nanosecond range; ~1.5ms is ample.
+; Post-deassert delay allows the chip to complete its internal POR sequence.
 ra8875_reset:
     call ra8875_reset_assert
-    call _ra8875_delay
+    call _ra8875_reset_assert_delay     ; ~1.5ms RESET asserted
     call ra8875_reset_deassert
+    call _ra8875_reset_delay            ; ~50ms settle after deassert
     ret
 
 
@@ -160,7 +222,7 @@ _ra8875_pllc1_init:
     ld a,RA8875_PLLC1
     ld b,RA8875_PLLC1_VAL
     call ra8875_write_reg
-    call _ra8875_delay
+    call _ra8875_reg_settle_delay
     pop bc
     pop af
     ret
@@ -171,7 +233,7 @@ _ra8875_pllc2_init:
     ld a,RA8875_PLLC2
     ld b,RA8875_PLLC2_VAL
     call ra8875_write_reg
-    call _ra8875_delay
+    call _ra8875_reg_settle_delay
     pop bc
     pop af
     ret
@@ -192,7 +254,7 @@ _ra8875_pcsr_init:
     ld a,RA8875_PCSR
     ld b,RA8875_PCSR_VAL
     call ra8875_write_reg
-    call _ra8875_delay
+    call _ra8875_reg_settle_delay
     pop bc
     pop af
     ret
@@ -288,16 +350,32 @@ _ra8875_vertical_active_window_init:
 ra8875_clear_window:
     push af
     push bc
+    push de
     ld a,RA8875_MCLR
     ld b,RA8875_MCLR_START | RA8875_MCLR_FULL
     call ra8875_write_reg
+    ld de,RA8875_MCLR_TIMEOUT
     ; wait for clear to complete
 _ra8875_clear_wait:
+    ld a,RA8875_MCLR            ; reload register address: ra8875_read_reg destroys A
     call ra8875_read_reg
-    cp RA8875_MCLR_READSTATUS
-    jr z,_ra8875_clear_wait
+    and RA8875_MCLR_READSTATUS  ; test bit 7 only (matches Adafruit library behaviour)
+    jr z,_ra8875_clear_done     ; bit 7 clear = done
+    dec de
+    ld a,d
+    or e
+    jr nz,_ra8875_clear_wait
+    ; timeout: return with error (NZ)
+    pop de
     pop bc
     pop af
+    or 1
+    ret
+_ra8875_clear_done:
+    pop de
+    pop bc
+    pop af
+    cp a                        ; clear flags (Z = success)
     ret
 
 ; Configure the full-screen scroll window and enable scrolling for both layers.
@@ -405,6 +483,7 @@ ra8875_initialise:
     call _ra8875_horizontal_active_window_init
     call _ra8875_vertical_active_window_init
     call ra8875_clear_window
+    ret nz ; error (timeout)
     call _ra8875_scroll_window_init
 
     call ra8875_display_on
@@ -524,6 +603,76 @@ _ra8875_puts_loop:
     inc hl
     jr _ra8875_puts_loop
 _ra8875_puts_done:
+    pop bc
+    pop af
+    ret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; colour setting
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Lookup table: 3 bytes per entry (R, G, B), indexed by RA8875_COL_* constants.
+_ra8875_colour_table:
+    defb RA8875_COL_BLACK_R,   RA8875_COL_BLACK_G,   RA8875_COL_BLACK_B
+    defb RA8875_COL_RED_R,     RA8875_COL_RED_G,     RA8875_COL_RED_B
+    defb RA8875_COL_GREEN_R,   RA8875_COL_GREEN_G,   RA8875_COL_GREEN_B
+    defb RA8875_COL_BLUE_R,    RA8875_COL_BLUE_G,    RA8875_COL_BLUE_B
+    defb RA8875_COL_YELLOW_R,  RA8875_COL_YELLOW_G,  RA8875_COL_YELLOW_B
+    defb RA8875_COL_CYAN_R,    RA8875_COL_CYAN_G,    RA8875_COL_CYAN_B
+    defb RA8875_COL_MAGENTA_R, RA8875_COL_MAGENTA_G, RA8875_COL_MAGENTA_B
+    defb RA8875_COL_WHITE_R,   RA8875_COL_WHITE_G,   RA8875_COL_WHITE_B
+
+; Private: write R/G/B from colour table to three consecutive registers starting at C.
+; A = colour constant (RA8875_COL_*); C = base register (RA8875_FGCR0 or RA8875_BGCR0)
+; Preserves all registers.
+; C = base register (RA8875_FGCR0 or RA8875_BGCR0); A = colour constant (RA8875_COL_*)
+; Preserves DE, HL. Does not preserve AF or BC (both are input parameters).
+_ra8875_set_colour:
+    push de
+    push hl
+    ld hl,_ra8875_colour_table
+    ld d,a          ; stash colour index in D
+    add a,a         ; A = index * 2
+    add a,d         ; A = index * 3
+    ld e,a
+    ld d,0
+    add hl,de       ; HL = &table[index * 3]
+    ld a,c
+    ld b,(hl)
+    call ra8875_write_reg   ; write R
+    inc hl
+    inc c
+    ld a,c
+    ld b,(hl)
+    call ra8875_write_reg   ; write G
+    inc hl
+    inc c
+    ld a,c
+    ld b,(hl)
+    call ra8875_write_reg   ; write B
+    pop hl
+    pop de
+    ret
+
+; Set text foreground colour.
+; A = colour constant (RA8875_COL_*). Preserves all registers.
+ra8875_set_foreground_colour:
+    push af
+    push bc
+    ld c,RA8875_FGCR0
+    call _ra8875_set_colour
+    pop bc
+    pop af
+    ret
+
+; Set text background colour.
+; A = colour constant (RA8875_COL_*). Preserves all registers.
+ra8875_set_background_colour:
+    push af
+    push bc
+    ld c,RA8875_BGCR0
+    call _ra8875_set_colour
     pop bc
     pop af
     ret
