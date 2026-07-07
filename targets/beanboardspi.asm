@@ -89,6 +89,11 @@ ra8875_write:
     nop ; short delay to allow for serialisation
     nop
     nop
+    nop
+    nop
+    nop
+    nop
+    nop
     ret
 
 
@@ -100,6 +105,11 @@ ra8875_read:
     ld a,0x00
     out (RA8875_SPI_DATA),a
     nop ; short delay to allow for serialisation
+    nop
+    nop
+    nop
+    nop
+    nop
     nop
     nop
     in a,(RA8875_SPI_DATA)
