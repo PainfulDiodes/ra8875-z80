@@ -1,3 +1,7 @@
+# v0.3.1
+
+* Increased software delay for serialisation to be compatible with BeeanBoardSPI Rev B
+
 # v0.3
 
 * Rename `environment.asm` to `system.asm` for consistency with marvin
