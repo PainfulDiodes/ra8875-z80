@@ -1,4 +1,4 @@
-# RA8875 Z80 v0.3
+# RA8875 Z80 v0.3.1
 
 Z80 library driver for the RA8875 TFT display controller (builds with [z88dk](https://github.com/z88dk/z88dk)).
 
@@ -18,7 +18,7 @@ It has been configured for and tested with the [Adafruit 7.0" 40-pin TFT Display
 
 The RA8875 board has an SPI interface. The library includes 2 example transports:
 
-**targets/beanboardspi.asm** — this assumes a hardware SPI interface is connected ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck); this target has been tested
+**targets/beanboardspi.asm** — this assumes a hardware SPI interface is connected ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck); this target has been tested with BeanBoardSPI Rev A and Rev B - although it does not currently make use of the status register in Rev B.
 
 **targets/beanboard.asm** — this bit-bangs SPI via a GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard)); this has NOT been tested, but the code was adopted from earlier prototypes - it should currently be considered experimental.
 
