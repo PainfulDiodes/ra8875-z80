@@ -1,4 +1,6 @@
-# RA8875 Z80 v0.3.1
+# RA8875 Z80 v0.4
+
+THIS IS A WORK IN PROGRESS
 
 Z80 library driver for the RA8875 TFT display controller (builds with [z88dk](https://github.com/z88dk/z88dk)).
 

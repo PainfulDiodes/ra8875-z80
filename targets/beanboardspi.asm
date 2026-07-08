@@ -36,6 +36,9 @@ RA8875_SPI_IDLE     equ 0xFF       ; all deselected, reset released
 RA8875_SPI_RESET    equ 0xFE       ; bit 0 low = reset asserted
 RA8875_SPI_SELECT_0 equ 0xFD       ; bit 1 low = SPI0 selected
 
+; Status register (read from same port as control register)
+SPI_STAT_READY      equ 0x01       ; bit 0 (~SER_EN): high = serialisation complete
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; transport interface
@@ -86,14 +89,10 @@ ra8875_cs_end:
 ; Destroys: AF
 ra8875_write:
     out (RA8875_SPI_DATA),a
-    nop ; short delay to allow for serialisation
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+_ra8875_write_wait:
+    in a,(RA8875_SPI_CTRL)
+    bit 0,a
+    jr z,_ra8875_write_wait     ; bit 0 low = serialising
     ret
 
 
@@ -104,13 +103,9 @@ ra8875_write:
 ra8875_read:
     ld a,0x00
     out (RA8875_SPI_DATA),a
-    nop ; short delay to allow for serialisation
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+_ra8875_read_wait:
+    in a,(RA8875_SPI_CTRL)
+    bit 0,a
+    jr z,_ra8875_read_wait      ; bit 0 low = serialising
     in a,(RA8875_SPI_DATA)
     ret
