@@ -1,3 +1,7 @@
+# v0.5
+
+* Remove the tests and example implementations, build and clean scripts, outputs
+
 # v0.4
 
 * Replace transport software delay for serialisation with status polling provided in BeeanBoardSPI Rev B

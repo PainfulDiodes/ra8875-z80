@@ -18,41 +18,9 @@ The driver has been written around the [Adafruit RA8875 Driver Board (Rev E) for
 
 It has been configured for and tested with the [Adafruit 7.0" 40-pin TFT Display - 800x480 without Touchscreen](https://www.adafruit.com/product/2353)
 
-The RA8875 board has an SPI interface. The library includes 2 example transports:
-
-**targets/beanboardspi.asm** — this assumes a hardware SPI interface is connected ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck); this target has been tested with BeanBoardSPI Rev B - making use of the status register in Rev B.
-
-**targets/beanboard.asm** — this bit-bangs SPI via a GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard)); this has NOT been tested, but the code was adopted from earlier prototypes - it should currently be considered experimental.
+The RA8875 board has an SPI interface. The library does not include an SPI transport - this will need to be provided by the consumer, based on their hardware. A stub is provided as a guide: spi_stub.asm
 
 Any software delays used in the driver assume a 10MHz Z80 CPU and may need adjusting for other clock speeds.
-
-## Files
-
-| File                       | Description                                            |
-|----------------------------|--------------------------------------------------------|
-| `asm/ra8875.asm`           | Core RA8875 chip driver                                |
-| `asm/ra8875.inc`           | Core RA8875 Register definitions and constants         |
-| `asm/console.asm`          | Optional console layer (scrolling and software cursor) |
-| `targets/beanboardspi.asm` | Parallel transport (hardware SPI) for BeanBoardSPI     |
-| `targets/beanboard.asm`    | Experimental bit-bang SPI transport for BeanBoard GPIO |
-| `targets/system.asm`       | RAM and port assignments                               |
-| `tests/main.asm`           | Example test harness                                   |
-
-## Building
-
-```bash
-./build.sh
-```
-
-Requires [z88dk](https://github.com/z88dk/z88dk). Assembles both targets
-(`beanboard` and `beanboardspi`) into `output/`, linking the test program,
-driver, console, and system modules.
-
-An optional RAM start address can be passed:
-
-```bash
-./build.sh 0x9000
-```
 
 ## References
 
