@@ -20,11 +20,11 @@ It has been configured for and tested with the [Adafruit 7.0" 40-pin TFT Display
 
 The RA8875 board has an SPI interface. The library includes 2 example transports:
 
-**targets/beanboardspi.asm** — this assumes a hardware SPI interface is connected ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck); this target has been tested with BeanBoardSPI Rev A and Rev B - although it does not currently make use of the status register in Rev B.
+**targets/beanboardspi.asm** — this assumes a hardware SPI interface is connected ([BeanBoardSPI](https://github.com/PainfulDiodes/BeanBoardSPI) / BeanDeck); this target has been tested with BeanBoardSPI Rev B - making use of the status register in Rev B.
 
 **targets/beanboard.asm** — this bit-bangs SPI via a GPIO ([BeanBoard](https://github.com/PainfulDiodes/BeanBoard)); this has NOT been tested, but the code was adopted from earlier prototypes - it should currently be considered experimental.
 
-There are some software delays used in the driver. These assume a 10MHz Z80 CPU and may need adjusting for other clock speeds (TODO: extract delay paramters as a CPU config in the system.asm module)
+Any software delays used in the driver assume a 10MHz Z80 CPU and may need adjusting for other clock speeds.
 
 ## Files
 

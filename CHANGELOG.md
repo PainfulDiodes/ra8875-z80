@@ -1,6 +1,10 @@
+# v0.4
+
+* Replace transport software delay for serialisation with status polling provided in BeeanBoardSPI Rev B
+
 # v0.3.1
 
-* Increased software delay for serialisation to be compatible with BeeanBoardSPI Rev B
+* Increased transport software delay for serialisation to be compatible with BeeanBoardSPI Rev B
 
 # v0.3
 
